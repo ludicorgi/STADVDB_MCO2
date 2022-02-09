@@ -4,9 +4,119 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <title>...</title>
+
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="/styles.css" type="text/css"/> 
 </head>
 
 <body>
-    ...
+    <div class="container-primary">
+        <div style="display: inline; flex-flow: row wrap;"> 
+            <br><br>
+            <h1 style="text-align: center;">APP TITLE</h1>
+
+            <div class="h-spacer20"></div> <div class="h-spacer20"></div>
+
+            <div class="row">
+                <button id="btn_modal_add">+ Add New Movie</button> 
+                <button id="btn_modal_report">Generate Report</button>
+            </div>
+
+            <div class="row" style="display: flex; width: 800px; ">
+
+                <button id="btn_search" style="margin:3px;">Search</button>
+
+                <select style="margin:3px;">
+                    <option value="">Movie Name</option>
+                    <option value="">Director</option>
+                    <option value="">Year</option>
+                    <option value="">Rank</option>
+                    <option value="">Genre</option>
+                </select>
+
+                <div style="flex:1"><input style="width: 100%; margin:3px;" type="text"></div>
+            </div>
+
+            <div class="h-spacer20"></div>
+
+            <div class="row">
+                <table style="width:100%; text-align: left;">
+                    <thead class="bgblack">
+                        <tr>
+                            <th scope="col">id</th>
+                            <th scope="col">Movie Name</th>
+                            <th scope="col">Year</th>
+                            <th scope="col">Rank</th>
+                            <th scope="col">Genre</th>
+                            <th scope="col">Director</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td class="btn_col"><button id="btn_modal_edit">EDIT</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADD NEW MOVIE-->
+    <div id="modal_add" class="w3-modal">
+        <div class="w3-modal-content small w3-animate-top w3-card-4">
+            <header class="w3-container bgblack"> 
+                <span id="span_modal_add" class="w3-button w3-display-topright">&times;</span>
+                <h2 style="margin-bottom: 15px;">Add New Movie</h2>
+            </header>
+            <div class="w3-container">
+                <div class="row">Movie Name<input style="margin:3px;" type="text"></div>
+                <div class="row">Year<input style="margin:3px;" type="text"></div>
+                <div class="row">Rank<input style="margin:3px;" type="text"></div>
+                <div class="row">Genre<input style="margin:3px;" type="text"></div>
+                <div class="row">Director<input style="margin:3px;" type="text"></div>
+            </div>
+            <footer class="w3-container bgblack" style="padding-top: 10px;padding-bottom: 10px;">
+                <button>Add</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- MODAL GENERATE REPORT-->
+    <div id="modal_report" class="w3-modal">
+        <div class="w3-modal-content medium w3-animate-top w3-card-4">
+            <header class="w3-container bgblack"> 
+                <span id="span_modal_report" class="w3-button w3-display-topright">&times;</span>
+                <h2 style="margin-bottom: 15px;">Data Report</h2>
+            </header>
+            <div class="w3-container">
+                <p>....</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VIEW AND EDIT -->
+    <div id="modal_edit" class="w3-modal">
+        <div class="w3-modal-content medium w3-animate-top w3-card-4">
+            <header class="w3-container bgblack"> 
+                <span id="span_modal_edit" class="w3-button w3-display-topright">&times;</span>
+                <h2 style="margin-bottom: 15px;">Edit Data</h2>
+            </header>
+            <div class="w3-container">
+                <p>....</p>
+            </div>
+            <footer class="w3-container bgblack" style="padding-top: 10px;padding-bottom: 10px;">
+                <button>Save</button>
+            </footer>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/index.js"></script>
 </body>
 </html>
