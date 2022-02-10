@@ -19,6 +19,7 @@ async function searchRecord(field, value){
     let query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE ?? = ?;";
     let values = [(field), (value)];
 
+    // search node 1
     con1.query(query, values, function(err, results){
         console.log("Node 1: Connected");
         if(err){
@@ -28,7 +29,8 @@ async function searchRecord(field, value){
             closeConnection(con1)
             return results;
         }
-//c lose conn
+
+        // search node 2
         query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_pre1980 WHERE ?? = ?;";
         con2.query(query, values, function(err, results){
             console.log("Node 2: Connected");
@@ -40,19 +42,20 @@ async function searchRecord(field, value){
                 closeConnection(con2);
                 return results;
             }
-        } );
 
-        query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE ?? = ?;";
-        con3.query(query, values, function(err, results){
-            console.log("Node 3: Connected");
-            console.log(results);
-            if(err){
-                if(err.code != lostConn) throw err;
-            }else if(results.length > 0) {
-                console.log("done3");
-                closeConnection(con3)
-                return results;
-            }
+            //search node 3
+            query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE ?? = ?;";
+            con3.query(query, values, function(err, results){
+                console.log("Node 3: Connected");
+                console.log(results);
+                if(err){
+                    if(err.code != lostConn) throw err;
+                }else if(results.length > 0) {
+                    console.log("done3");
+                    closeConnection(con3)
+                    return results;
+                }
+            } );
         } );
     });
 };
