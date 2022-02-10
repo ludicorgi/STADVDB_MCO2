@@ -60,11 +60,11 @@ async function searchRecord(field, value){
     });
 };
 
-function insertOneRecordIntoAllNodes(name, year, genre, director){
-    values = [name, year, genre, director];
+function insertOneRecordIntoAllNodes(name, year, rank, genre, director){
+    values = [name, year, rank, genre, director];
 
     // insert into node 1
-    con1.query("INSERT INTO movies_all (name, year, genre, director) VALUES (?,?,?,?);", values, function(err, results){
+    con1.query("INSERT INTO movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", values, function(err, results){
         if(err) throw err;
         console.log("Node 1: 1 record inserted");
 
@@ -73,7 +73,7 @@ function insertOneRecordIntoAllNodes(name, year, genre, director){
         
         // insert into node 2
         if(year < 1980){
-            con2.query("INSERT INTO movies_pre1980 (id, name, year, genre, director) VALUES (?,?,?,?,?);", values, function(err){
+            con2.query("INSERT INTO movies_pre1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values, function(err){
                 if(err) throw err;
                 console.log("Node 2: 1 record inserted");
                 closeConnection(con2);
@@ -83,7 +83,7 @@ function insertOneRecordIntoAllNodes(name, year, genre, director){
 
         // insert into node 3
         if(year >= 1980){
-            con3.query("INSERT INTO movies_post1980 (id, name, year, genre, director) VALUES (?,?,?,?,?);", values, function(err){
+            con3.query("INSERT INTO movies_post1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values, function(err){
                 if(err) throw err;
                 console.log("Node 3: 1 record inserted");
                 closeConnection(con3);
@@ -94,20 +94,20 @@ function insertOneRecordIntoAllNodes(name, year, genre, director){
     });
 }
 
-function updateOneRecordInAllNodes(id, name, year, genre, director, old_year){
-    var values = [name, year, genre, director, id];
-    var values_for_insert = [id, name, year, genre, director];
+function updateOneRecordInAllNodes(id, name, year, rank, genre, director, old_year){
+    var values = [name, year, rank, genre, director, id];
+    var values_for_insert = [id, name, year, rank, genre, director];
     var oldYearIsPost1980 = old_year >= 1980;
     var newYearIsPost1980 = year >= 1980;
 
     if(oldYearIsPost1980 && !newYearIsPost1980){
         // update record in Node 1
-        con1.query("UPDATE movies_all SET name=?, year=?, genre=?, director=? WHERE id=?;", values, function(err, results){
+        con1.query("UPDATE movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(err, results){
             if(err) throw err;
             console.log("Node 1: updated " + results.affectedRows + " records");
 
             // insert record into Node 2
-            con2.query("INSERT INTO movies_pre1980 (id, name, year, genre, director) VALUES (?,?,?,?,?);", values_for_insert, function(err){
+            con2.query("INSERT INTO movies_pre1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values_for_insert, function(err){
                 if(err) throw err;
                 console.log("Node 2: 1 record inserted");
 
@@ -127,12 +127,12 @@ function updateOneRecordInAllNodes(id, name, year, genre, director, old_year){
     }
     else if(!oldYearIsPost1980 && newYearIsPost1980){
         // update record in Node 1
-        con1.query("UPDATE movies_all SET name=?, year=?, genre=?, director=? WHERE id=?;", values, function(err, results){
+        con1.query("UPDATE movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(err, results){
             if(err) throw err;
             console.log("Node 1: updated " + results.affectedRows + " records");
 
             // insert record into Node 3
-            con3.query("INSERT INTO movies_post1980 (id, name, year, genre, director) VALUES (?,?,?,?,?);", values_for_insert, function(err){
+            con3.query("INSERT INTO movies_post1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values_for_insert, function(err){
                 if(err) throw err;
                 console.log("Node 3: 1 record inserted");
 
@@ -152,13 +152,13 @@ function updateOneRecordInAllNodes(id, name, year, genre, director, old_year){
     }
     else{
         // update entry in node 1
-        con1.query("UPDATE movies_all SET name=?, year=?, genre=?, director=? WHERE id=?;", values, function(err, results){
+        con1.query("UPDATE movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(err, results){
             if(err) throw err;
             console.log("Node 1: updated " + results.affectedRows + " records");
 
             // update entry in node 2
             if(year < 1980){
-                con2.query("UPDATE movies_pre1980 SET name=?, year=?, genre=?, director=? WHERE id=?;", values, function(err){
+                con2.query("UPDATE movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(err){
                     if(err) throw err;
                     console.log("Node 2: updated " + results.affectedRows + " records");
                     closeConnection(con2);
@@ -167,14 +167,11 @@ function updateOneRecordInAllNodes(id, name, year, genre, director, old_year){
 
             // update entry in node 3
             if(year >= 1980){
-                if(err) throw err;
-                    console.log("Node 3: Connected");
-
-                    con3.query("UPDATE movies_post1980 SET name=?, year=?, genre=?, director=? WHERE id=?;", values, function(err){
-                        if(err) throw err;
-                        console.log("Node 3: updated " + results.affectedRows + " records");
-                        closeConnection(con3);
-                    });
+                con3.query("UPDATE movies_post1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(err){
+                    if(err) throw err;
+                    console.log("Node 3: updated " + results.affectedRows + " records");
+                    closeConnection(con3);
+                });
             };
 
             closeConnection(con1);
