@@ -25,9 +25,10 @@ async function searchRecord(field, value){
             if(err.code != lostConn) throw err;
         } else if(results.length > 0) {
             console.log("done1");
+            closeConnection(con1)
             return results;
         }
-
+//c lose conn
         query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_pre1980 WHERE ?? = ?;";
         con2.query(query, values, function(err, results){
             console.log("Node 2: Connected");
@@ -36,6 +37,7 @@ async function searchRecord(field, value){
                 if(err.code != lostConn) throw err;
             }else if(results.length > 0) {
                 console.log("done2");
+                closeConnection(con2);
                 return results;
             }
         } );
@@ -48,6 +50,7 @@ async function searchRecord(field, value){
                 if(err.code != lostConn) throw err;
             }else if(results.length > 0) {
                 console.log("done3");
+                closeConnection(con3)
                 return results;
             }
         } );
