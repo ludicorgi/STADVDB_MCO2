@@ -15,46 +15,43 @@ function closeConnection(con){
     });
 }
 
-function searchRecord(field, value){
-    let query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE ? = ?;";
-    let values = [field, value];
-    query = mysql.format(query, values);
-    console.log(query);
-    con1.connect(function(err){
-        
-        if(err){
-            //check if err is because of server down
-            if(err.code != lostConn) throw err;
-        }
-    
-        console.log("Node 1: Connected");
-        
-        con1.query(query, function(err, results){
-            console.log(results);
-            if(err) throw err;
-            if(results) return results;
-        });
-        
-        // con2.connect(function(err){
-        //     console.log("Node 2: Connected");
-            
-        //     if(err) throw err;
-        //     con2.query(query, function(err, results){
-        //         if(err) throw err;
-        //         if(results) return results;
-        //     } );
-        // });
-        
-        // con3.connect(function(err){            
-        //     console.log("Node 3: Connected");
+async function searchRecord(field, value){
+    let query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE ?? = ?;";
+    let values = [(field), (value)];
 
-        //     if(err) throw err;
-        //     con3.query(query, function(err, results){
-        //         if(err) throw err;
-        //         if(results) return results;
-        //     } );
-        // });
-    })
+    con1.query(query, values, function(err, results){
+        console.log("Node 1: Connected");
+        if(err){
+            if(err.code != lostConn) throw err;
+        } else if(results.length > 0) {
+            console.log("done1");
+            return results;
+        }
+
+        query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_pre1980 WHERE ?? = ?;";
+        con2.query(query, values, function(err, results){
+            console.log("Node 2: Connected");
+            console.log(results);
+            if(err){
+                if(err.code != lostConn) throw err;
+            }else if(results.length > 0) {
+                console.log("done2");
+                return results;
+            }
+        } );
+
+        query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE ?? = ?;";
+        con3.query(query, values, function(err, results){
+            console.log("Node 3: Connected");
+            console.log(results);
+            if(err){
+                if(err.code != lostConn) throw err;
+            }else if(results.length > 0) {
+                console.log("done3");
+                return results;
+            }
+        } );
+    });
 };
 
 function insertOneRecordIntoAllNodes(name, year, genre, director){
