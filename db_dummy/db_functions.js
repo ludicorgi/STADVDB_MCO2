@@ -1,5 +1,12 @@
-import {con1, con2, con3} from "./connect_db.js";
+// import {con2, con3} from "./db_connections";
+// import {con1} from "./dblocal_conn.js";
+const connections = require('./db_connections');
+// const con1 = connections.con1;
+const con2 = connections.con2;
+const con3 = connections.con3
 
+const con1 = require('./dblocal_conn');
+const mysql = require('mysql')
 const lostConn = 'PROTOCOL_CONNECTION_LOST';
 function closeConnection(con){
     con.end(function(err){
@@ -15,42 +22,44 @@ function closeConnection(con){
 // }
 
 function searchRecord(field, value){
-    let query = "SELECT id, name, year, rank, genre, director FROM movies_all WHERE ? = ?;";
+    let query = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE ? = ?;";
     let values = [field, value];
     query = mysql.format(query, values);
-
+    console.log(query);
     con1.connect(function(err){
         
         if(err){
+            //check if err is because of server down
             if(err.code != lostConn) throw err;
         }
     
         console.log("Node 1: Connected");
         
         con1.query(query, function(err, results){
+            console.log(results);
             if(err) throw err;
             if(results) return results;
         });
         
-        con2.connect(function(err){
-            console.log("Node 2: Connected");
+        // con2.connect(function(err){
+        //     console.log("Node 2: Connected");
             
-            if(err) throw err;
-            con2.query(query, function(err, results){
-                if(err) throw err;
-                if(results) return results;
-            } );
-        });
+        //     if(err) throw err;
+        //     con2.query(query, function(err, results){
+        //         if(err) throw err;
+        //         if(results) return results;
+        //     } );
+        // });
         
-        con3.connect(function(err){            
-            console.log("Node 2: Connected");
+        // con3.connect(function(err){            
+        //     console.log("Node 3: Connected");
 
-            if(err) throw err;
-            con3.query(query, function(err, results){
-                if(err) throw err;
-                if(results) return results;
-            } );
-        });
+        //     if(err) throw err;
+        //     con3.query(query, function(err, results){
+        //         if(err) throw err;
+        //         if(results) return results;
+        //     } );
+        // });
     })
 };
 
@@ -102,3 +111,4 @@ function insertOneRecordIntoAllNodes(name, year, genre, director){
         });
     });
 }
+module.exports = {closeConnection, searchRecord, insertOneRecordIntoAllNodes};

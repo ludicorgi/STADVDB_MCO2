@@ -24,4 +24,4 @@ var con3 = mysql.createConnection({
     database: "node3"
 });
 
-export {con1, con2, con3};
+module.exports = {con1, con2, con3};
