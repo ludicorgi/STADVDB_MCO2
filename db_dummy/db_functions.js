@@ -152,3 +152,4 @@ function updateOneRecordInAllNodes(id, name, year, genre, director){
         });
     });
 }
+module.exports = {closeConnection, searchRecord, insertOneRecordIntoAllNodes};
