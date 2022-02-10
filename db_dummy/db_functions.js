@@ -1,35 +1,58 @@
-var mysql = require('mysql');
+import {con1, con2, con3} from "./connect_db.js";
 
-var con1 = mysql.createConnection({
-    host: "moves-all.cxtjrbb21bon.ap-southeast-1.rds.amazonaws.com",
-    port: 3306,
-    user: "admin",
-    password: "12345678",
-    database: "node1"
-});
-
-var con2 = mysql.createConnection({
-    host: "movies-left.cxtjrbb21bon.ap-southeast-1.rds.amazonaws.com",
-    port: 3306,
-    user: "admin",
-    password: "12345678",
-    database: "node2"
-});
-
-var con3 = mysql.createConnection({
-    host: "movies-right.cxtjrbb21bon.ap-southeast-1.rds.amazonaws.com",
-    port: 3306,
-    user: "admin",
-    password: "12345678",
-    database: "node3"
-});
-
+const lostConn = 'PROTOCOL_CONNECTION_LOST';
 function closeConnection(con){
     con.end(function(err){
         if (err) throw err;
         console.log("Closed connection");
     });
 }
+// function updateOneRecord(name, year, genre, director){
+//     values = [name, year, genre, director];
+//     let query = "UPDATE movies_all SET 'name' = ?, 'year' = ?, 'genre' = ?, 'director' = ? WHERE 'id' = ?;"
+   
+//    //update node 2/3 get id then update node 1 
+// }
+
+function searchRecord(field, value){
+    let query = "SELECT id, name, year, rank, genre, director FROM movies_all WHERE ? = ?;";
+    let values = [field, value];
+    query = mysql.format(query, values);
+
+    con1.connect(function(err){
+        
+        if(err){
+            if(err.code != lostConn) throw err;
+        }
+    
+        console.log("Node 1: Connected");
+        
+        con1.query(query, function(err, results){
+            if(err) throw err;
+            if(results) return results;
+        });
+        
+        con2.connect(function(err){
+            console.log("Node 2: Connected");
+            
+            if(err) throw err;
+            con2.query(query, function(err, results){
+                if(err) throw err;
+                if(results) return results;
+            } );
+        });
+        
+        con3.connect(function(err){            
+            console.log("Node 2: Connected");
+
+            if(err) throw err;
+            con3.query(query, function(err, results){
+                if(err) throw err;
+                if(results) return results;
+            } );
+        });
+    })
+};
 
 function insertOneRecordIntoAllNodes(name, year, genre, director){
     values = [name, year, genre, director];
