@@ -24,4 +24,12 @@ var con3 = mysql.createConnection({
     database: "node3"
 });
 
-module.exports = {con1, con2, con3};
+var con1Clone = mysql.createConnection({
+    host: "moves-all.cxtjrbb21bon.ap-southeast-1.rds.amazonaws.com",
+    port: 3306,
+    user: "admin",
+    password: "12345678",
+    database: "node1"
+});
+
+module.exports = {con1, con2, con3, con1Clone};
