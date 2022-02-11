@@ -80,7 +80,6 @@ function insertOneRecordIntoAllNodes(name, year, rank, genre, director){
             });
         };
 
-
         // insert into node 3
         if(year >= 1980){
             con3.query("INSERT INTO movies_post1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values, function(err){
@@ -91,6 +90,101 @@ function insertOneRecordIntoAllNodes(name, year, rank, genre, director){
         };
 
         closeConnection(con1);
+    });
+}
+
+function newInsert(name, year, rank, genre, director){
+    values = [name, year, rank, genre, director];
+
+    // insert into node 1
+    con1.query("INSERT INTO movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", values, function(errNode1, results){
+        if(errNode1){
+            // TODO: create system where id can be retrieved even when node 1 is down
+            values.unshift(400000);
+
+            // insert into node 3
+            if(year >= 1980){
+                con3.query("INSERT INTO movies_post1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values, function(errNode3){
+                    if(errNode3){
+                        throw errNode3;
+                    }
+
+                    console.log("Node 3: 1 record inserted to movies_post1980");
+                    values.unshift(0, "INSERT");
+                    con3.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?,?)", values, function(err){
+                        if(err) throw err;
+                        console.log("Node 3: 1 record inserted to fail_log");
+                        closeConnection(con3);
+                        throw errNode1;
+                    })
+                });
+            };
+
+            // insert into node 2
+            if(year < 1980){
+                con2.query("INSERT INTO movies_pre1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values, function(errNode2){
+                    if(errNode2){
+                        throw errNode2;
+                    }
+
+                    console.log("Node 2: 1 record inserted to movies_pre1980");
+                    values.unshift(0, "INSERT");
+                    con2.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?,?)", values, function(err){
+                        if(err) throw err;
+                        console.log("Node 2: 1 record inserted to fail_log");
+                        closeConnection(con2);
+                        throw errNode1;
+                    })
+                });
+            };
+        }
+        else{
+            console.log("Node 1: 1 record inserted to movies_all");
+            // append auto-generated id to values array
+            values.unshift(results.insertId);
+
+            // insert into node 2
+            if(year < 1980){
+                con2.query("INSERT INTO movies_pre1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values, function(errNode2){
+                    if(errNode2){
+                        values.unshift(0, "INSERT");
+                        con1.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?,?)", values, function(err){
+                            if(err){
+                                throw err;
+                            } 
+                            console.log("Node 1: 1 record inserted to fail_log");
+                            throw errNode2;
+                        });
+                    } 
+                    else{
+                        console.log("Node 2: 1 record inserted to movies_pre1980");
+                        closeConnection(con2);
+                    }
+                    closeConnection(con1);
+                });
+            };
+
+            // insert into node 3
+            if(year >= 1980){
+                con3.query("INSERT INTO movies_post1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values, function(errNode3){
+                    if(errNode3){
+                        values.unshift(0, "INSERT");
+                        con1.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?,?)", values, function(err){
+                            if(err){
+                                throw err;
+                            } 
+                            console.log("Node 1: 1 record inserted to fail_log");
+                            throw errNode3;
+                        });
+                    } 
+                    else{
+                        console.log("Node 3: 1 record inserted to movies_post1980");
+                        closeConnection(con3);
+                    }
+                    closeConnection(con1);
+                });
+            };
+        }
     });
 }
 
@@ -178,4 +272,5 @@ function updateOneRecordInAllNodes(id, name, year, rank, genre, director, old_ye
         });
     }
 }
+newInsert("TESTRECORD", 1980, 1.2, "TESTRECORD", "TESTRECORD");
 module.exports = {closeConnection, searchRecord, insertOneRecordIntoAllNodes};
