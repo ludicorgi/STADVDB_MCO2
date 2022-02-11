@@ -8,6 +8,7 @@ const con1Clone = connections.con1Clone;
 async function concurrencyTest1(){
     // all transactions are reading
     let t1res, t2res, fixedRes;
+    console.log("Test 1");
     con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res)=> {
         if(err) throw err
         fixedRes = JSON.stringify(res);
@@ -58,11 +59,15 @@ async function concurrencyTest1(){
 
 }
 
-async function concurrencyTest2(){
+async function concurrencyTest2(option){
     let t2res;
-    // db.setIsolationLevel(con1, 'read committed');
-    await sleep(1000);
-    let rank = 5 // 5 or null
+    let rank // 5 or null
+    console.log("Test 2");
+    if(option % 2 == 0){
+        rank = 5
+    } else {
+        rank = 'null'
+    }
     con1.beginTransaction((err)=>{
         if(err) throw err
         console.log("Transaction 1:")
@@ -85,7 +90,7 @@ async function concurrencyTest2(){
         // sleep(5000);
 
     });
-    await sleep(1000);
+    await sleep(500);
     con1Clone.beginTransaction((err) => {
         if(err) throw err
         console.log("Transaction 2:");
@@ -104,6 +109,7 @@ async function concurrencyTest2(){
     // T2 should be unupdated
     if(t2res == rank){
         // console.log(t2res);
+        // console.log(rank);
         console.log('fail');
     }else{
         console.log('pass');
@@ -118,8 +124,14 @@ async function concurrencyTest2(){
 
 }
 
-async function concurrencyTest3(){
-    let rank = 5 // null or 5
+async function concurrencyTest3(option){
+    let rank; // null or 5
+    console.log("Test 3");
+    if(option % 2 == 0){
+        rank = 5
+    } else {
+        rank = 7
+    }
     // let year = 2000  // id 1; year 2000 is original
     con1.beginTransaction((err) => {
         if(err) throw err
@@ -173,9 +185,20 @@ function sleep(ms) {
     });
   }
 async function runAllTests(){
-    // await concurrencyTest1();
-    // await concurrencyTest2();
-    await concurrencyTest3();
+
+    for(let i = 0; i < 4; i++){
+        if(i == 0) db.setAllIsolationLevel('read uncommitted');
+        else if (i == 1) db.setAllIsolationLevel('read committed');
+        else if (i == 2) db.setAllIsolationLevel('repeatable read');
+        else if (i == 3) db.setAllIsolationLevel('serializable');
+    
+        await concurrencyTest1();
+        console.log("----");
+        await concurrencyTest2(i);
+        console.log("----");
+        await concurrencyTest3(i);
+    }
+
 }
 
 runAllTests();
