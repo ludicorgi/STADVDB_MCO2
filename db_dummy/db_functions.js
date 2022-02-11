@@ -272,5 +272,4 @@ function updateOneRecordInAllNodes(id, name, year, rank, genre, director, old_ye
         });
     }
 }
-newInsert("TESTRECORD", 1980, 1.2, "TESTRECORD", "TESTRECORD");
 module.exports = {closeConnection, searchRecord, insertOneRecordIntoAllNodes};
