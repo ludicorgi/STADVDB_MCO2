@@ -22,19 +22,31 @@ async function concurrencyTest1(){
             console.log("Transaction 1:");
             // console.log(res);
             t1res = JSON.stringify(res);
+            con1.query("DO SLEEP(2)", (err) => {
+                if(err) throw err
+                con1.commit((err) => {
+                    if(err) throw err
+                    console.log("T1 Done");
+                })
+            })
+
         })
         
     })
-
-    con1.beginTransaction((err) => {
+    await sleep(3000);
+    con1Clone.beginTransaction((err) => {
         if(err) throw err
         
-        con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res)=> {
+        con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res)=> {
             if(err) throw err
 
             console.log("Transaction 2:")
             // console.log(res[0].rank);
             t2res = JSON.stringify(res);
+            con1Clone.commit((err) => {
+                if(err) throw err
+                console.log("T2 Done");
+            })
         })
     })
 
@@ -48,7 +60,7 @@ async function concurrencyTest1(){
 
 async function concurrencyTest2(){
     let t2res;
-    db.setIsolationLevel(con1, 'read committed');
+    // db.setIsolationLevel(con1, 'read committed');
     await sleep(1000);
     let rank = 5 // 5 or null
     con1.beginTransaction((err)=>{
@@ -106,6 +118,55 @@ async function concurrencyTest2(){
 
 }
 
+async function concurrencyTest3(){
+    let rank = 5 // null or 5
+    let year = 2000  // id 1; year 2000 is original
+    con1.beginTransaction((err) => {
+        if(err) throw err
+        console.log("T1 Started");
+        con1.query("UPDATE movies_all SET `rank`= "+ rank +" WHERE id=1", (err, res) => { // rank is null before
+            // console.log(res);
+            if(err) throw err
+            con1.query("DO SLEEP(8)", (err) => {
+                if(err) throw err
+                con1.commit((err)=>{
+                    console.log("Transaction 1 committed");
+                    if(err) throw err
+                    con3.query("UPDATE movies_post1980 SET `rank`= "+ rank +" WHERE id=1", (err) => {
+                        if(err) throw err
+                    })
+                })
+        
+            })
+        });
+    })
+    await sleep(1000);
+    con1Clone.beginTransaction((err) => {
+        if(err) throw err
+        console.log("T2 Started");
+        con1Clone.query("UPDATE movies_all SET `year`= "+ year +" WHERE id=1", (err, res) => { // rank is null before
+            // console.log(res);
+            if(err) throw err
+            con1Clone.commit((err)=>{
+                console.log("Transaction 2 committed");
+                if(err) throw err
+                con3.query("UPDATE movies_post1980 SET `year`= "+ year +" WHERE id=1", (err) => {
+                    if(err) throw err
+                })
+            })
+        });
+    })
+    await sleep(9000);
+    con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
+        if(res[0].rank == rank && res[0].year == year){
+            console.log("pass");
+        }else{
+            console.log("fail");
+        }
+
+    })
+}
+
 function sleep(ms) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
@@ -113,5 +174,6 @@ function sleep(ms) {
   }
 
 // concurrencyTest1();
-concurrencyTest2();
+// concurrencyTest2();
+concurrencyTest3();
 sleep(5000);
