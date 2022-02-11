@@ -52,8 +52,8 @@ async function concurrencyTest1(){
 
     await sleep(1000);
     if(t1res == fixedRes && t2res == fixedRes){
-        console.log("No DB Changes");
-    }
+        console.log("Pass");
+    }else console.log("Fail");
     // console.log(t1res);
 
 }
@@ -120,7 +120,7 @@ async function concurrencyTest2(){
 
 async function concurrencyTest3(){
     let rank = 5 // null or 5
-    let year = 2000  // id 1; year 2000 is original
+    // let year = 2000  // id 1; year 2000 is original
     con1.beginTransaction((err) => {
         if(err) throw err
         console.log("T1 Started");
@@ -144,13 +144,13 @@ async function concurrencyTest3(){
     con1Clone.beginTransaction((err) => {
         if(err) throw err
         console.log("T2 Started");
-        con1Clone.query("UPDATE movies_all SET `year`= "+ year +" WHERE id=1", (err, res) => { // rank is null before
+        con1Clone.query("UPDATE movies_all SET `rank`= `rank` + 1 WHERE id=1", (err, res) => { // rank is null before
             // console.log(res);
             if(err) throw err
             con1Clone.commit((err)=>{
                 console.log("Transaction 2 committed");
                 if(err) throw err
-                con3.query("UPDATE movies_post1980 SET `year`= "+ year +" WHERE id=1", (err) => {
+                con3.query("UPDATE movies_post1980 SET `rank`= `rank` + 1 WHERE id=1", (err) => {
                     if(err) throw err
                 })
             })
@@ -158,7 +158,7 @@ async function concurrencyTest3(){
     })
     await sleep(9000);
     con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
-        if(res[0].rank == rank && res[0].year == year){
+        if(res[0].rank == rank + 1){
             console.log("pass");
         }else{
             console.log("fail");
@@ -172,8 +172,10 @@ function sleep(ms) {
       setTimeout(resolve, ms);
     });
   }
+async function runAllTests(){
+    // await concurrencyTest1();
+    // await concurrencyTest2();
+    await concurrencyTest3();
+}
 
-// concurrencyTest1();
-// concurrencyTest2();
-concurrencyTest3();
-sleep(5000);
+runAllTests();
