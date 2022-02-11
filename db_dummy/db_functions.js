@@ -272,4 +272,179 @@ function updateOneRecordInAllNodes(id, name, year, rank, genre, director, old_ye
         });
     }
 }
+
+function newUpdate(id, name, year, rank, genre, director, old_year){
+    var values = [name, year, rank, genre, director, id];
+    var values_for_insert = [id, name, year, rank, genre, director];
+    var oldYearIsPost1980 = old_year >= 1980;
+    var newYearIsPost1980 = year >= 1980;
+
+    if(oldYearIsPost1980 && !newYearIsPost1980){
+        // update record in Node 1
+        con1.query("UPDATE movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(errNode1, results){
+            if(errNode1){
+                con2.query("INSERT INTO movies_pre1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values_for_insert, function(err){
+                    if(err) throw err;
+                    console.log("Node 2: 1 record inserted");
+
+                    con2.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (0,'UPDATE',?,?,?,?,?,?);", values_for_insert, function(err){
+                        if (err) throw err;
+                        console.log("Node 2: 1 record inserted into fail_log");
+                        closeConnection(con2);
+                        // delete record from Node 3
+                        con3.query("DELETE FROM movies_post1980 WHERE id=?", id, function(err, results){
+                            if(err) throw err;
+                            console.log("Node 3: deleted " + results.affectedRows + " records");
+                            closeConnection(con3);
+                            throw errNode1;
+                        });
+                    });
+                });
+            } 
+            else{
+                console.log("Node 1: updated " + results.affectedRows + " records");
+
+                // insert record into Node 2
+                con2.query("INSERT INTO movies_pre1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values_for_insert, function(err){
+                    if(err) throw err;
+                    console.log("Node 2: 1 record inserted");
+    
+                    // delete record from Node 3
+                    con3.query("DELETE FROM movies_post1980 WHERE id=?", id, function(err, results){
+                        if(err) throw err;
+                        console.log("Node 3: deleted " + results.affectedRows + " records");
+    
+                        closeConnection(con3);
+                    });
+                    
+                    closeConnection(con2);
+                });
+    
+                closeConnection(con1);
+            }
+        });
+    }
+    else if(!oldYearIsPost1980 && newYearIsPost1980){
+        // update record in Node 1
+        con1.query("UPDATE movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(errNode1, results){
+            if(errNode1){
+                // insert record into Node 3
+                con3.query("INSERT INTO movies_post1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values_for_insert, function(err){
+                    if(err) throw err;
+                    console.log("Node 3: 1 record inserted");
+
+                    con3.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (0,'UPDATE',?,?,?,?,?,?);", values_for_insert, function(err){
+                        if (err) throw err;
+                        console.log("Node 3: 1 record inserted into fail_log");
+                        closeConnection(con3);
+                        // delete record from Node 2
+                        con2.query("DELETE FROM movies_pre1980 WHERE id=?", id, function(err, results){
+                            if(err) throw err;
+                            console.log("Node 2: deleted " + results.affectedRows + " records");
+                            closeConnection(con2);
+                            throw errNode1;
+                        });
+                    });
+                });                
+            } 
+            else{
+                console.log("Node 1: updated " + results.affectedRows + " records");
+
+                // insert record into Node 3
+                con3.query("INSERT INTO movies_post1980 (id, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", values_for_insert, function(err){
+                    if(err) throw err;
+                    console.log("Node 3: 1 record inserted");
+
+                    // delete record from Node 2
+                    con2.query("DELETE FROM movies_pre1980 WHERE id=?", id, function(err, results){
+                        if(err) throw err;
+                        console.log("Node 2: deleted " + results.affectedRows + " records");
+
+                        closeConnection(con2);
+                    });
+                    
+                    closeConnection(con3);
+                });
+
+                closeConnection(con1);
+            }
+        });
+    }
+    else{
+        // update entry in node 1
+        con1.query("UPDATE movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(errNode1, results){
+            if(errNode1){
+                // update entry in node 2
+                if(year < 1980){
+                    con2.query("UPDATE movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(err, results){
+                        if(err) throw err;
+                        console.log("Node 2: updated " + results.affectedRows + " records");
+
+                        con2.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (0,'UPDATE',?,?,?,?,?,?);", values_for_insert, function(err){
+                            if (err) throw err;
+                            console.log("Node 2: 1 record inserted into fail_log");
+                            closeConnection(con2);
+                            throw errNode1;
+                        });
+                    });
+                };
+
+                // update entry in node 3
+                if(year >= 1980){
+                    con3.query("UPDATE movies_post1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(err, results){
+                        if(err) throw err;
+                        console.log("Node 3: updated " + results.affectedRows + " records");
+
+                        con3.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (0,'UPDATE',?,?,?,?,?,?);", values_for_insert, function(err){
+                            if (err) throw err;
+                            console.log("Node 3: 1 record inserted into fail_log");
+                            closeConnection(con3);
+                            throw errNode1;
+                        });
+                    });
+                };
+            }
+            else{
+                console.log("Node 1: updated " + results.affectedRows + " records");
+                // update entry in node 2
+                if(year < 1980){
+                    con2.query("UPDATE movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(errNode2){
+                        if(errNode2){
+                            con1.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (0,'UPDATE',?,?,?,?,?,?);", values_for_insert, function(err){
+                                if(err) throw err;
+                                console.log("Node 1: 1 record inserted into fail_log");
+                                closeConnection(con1);
+                                throw errNode2;
+                            });
+                        } 
+                        else{
+                            console.log("Node 2: updated " + results.affectedRows + " records");
+                            closeConnection(con2); 
+                            closeConnection(con1);
+                        }
+                    });
+                };
+
+                // update entry in node 3
+                if(year >= 1980){
+                    con3.query("UPDATE movies_post1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE id=?;", values, function(errNode3){
+                        if(errNode3){
+                            con1.query("INSERT INTO fail_log (resolved, type, movie_id, name, year, `rank`, genre, director) VALUES (0,'UPDATE',?,?,?,?,?,?);", values_for_insert, function(err){
+                                if(err) throw err;
+                                console.log("Node 1: 1 record inserted into fail_log");
+                                closeConnection(con1);
+                                throw errNode3;
+                            });
+                        } 
+                        else{
+                            console.log("Node 3: updated " + results.affectedRows + " records");
+                            closeConnection(con3);
+                            closeConnection(con1);
+                        }
+                    });
+                };
+            }
+        });
+    }
+}
 module.exports = {closeConnection, searchRecord, insertOneRecordIntoAllNodes};
