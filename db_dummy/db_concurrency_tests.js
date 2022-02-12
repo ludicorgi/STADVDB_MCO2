@@ -333,4 +333,15 @@ async function runAllTests() {
 
 }
 
-runAllTests();
+async function testSearch(){
+    // director >1980
+    // director <1980
+    // year >1980
+    // year <1980
+
+    db.newSearch('year', '1980', (res)=>{
+        console.log(res[0],res.length);
+    });
+}
+// testSearch();
+// runAllTests();
