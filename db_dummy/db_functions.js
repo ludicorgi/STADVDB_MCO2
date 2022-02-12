@@ -1,11 +1,11 @@
 // import {con2, con3} from "./db_connections";
 // import {con1} from "./dblocal_conn.js";
 const connections = require('./db_connections');
-// const con1 = connections.con1;
+const con1 = connections.con1;
 const con2 = connections.con2;
 const con3 = connections.con3
 
-const con1 = require('./dblocal_conn');
+// const con1 = require('./dblocal_conn');
 const mysql = require('mysql')
 const lostConn = 'PROTOCOL_CONNECTION_LOST';
 function closeConnection(con){
@@ -185,6 +185,95 @@ function newInsert(name, year, rank, genre, director){
                 });
             };
         }
+    });
+}
+
+function reallyNewInsert(name, year, rank, genre, director){
+    // TODO: error handling - rollback (?)
+    con1.beginTransaction(function(err){
+        con1.query("INSERT INTO recovery_log (type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", ['START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function(err, results){
+            if (err) throw err;
+            var txnId = results.insertId;
+
+            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err){
+                if (err) throw err;
+
+                con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err){
+                    if (err) throw err;
+                    
+                    if(year < 1980){
+                        con2.beginTransaction(function(err){
+                            if (err) throw err;
+
+                            con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function(err){
+                                if(err) throw err;
+
+                                con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err){
+                                    if (err) throw err;
+    
+                                    con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err){
+                                        if (err) throw err;
+    
+                                        con1.commit(function(err){
+                                            if(err) throw err;
+    
+                                            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function(err) {
+                                                if (err) throw err;
+                                                closeConnection(con1);
+                                            });
+                                        })
+                                        con2.commit(function(err){
+                                            if (err) throw err;
+                                            
+                                            con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function (err) {
+                                                if (err) throw err;
+                                                closeConnection(con2);
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                        
+                    }
+
+                    if(year >= 1980){
+                        con3.beginTransaction(function(err){
+                            if (err) throw err;
+
+                            con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function (err){
+                                if (err) throw err;
+                                
+                                con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err){
+                                    if (err) throw err;
+        
+                                    con3.query("INSERT INTO final_movies_post1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err){
+                                        if (err) throw err;
+        
+                                        con1.commit(function(err){
+                                            if(err) throw err;
+        
+                                            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function (err) {
+                                                if (err) throw err;
+                                                closeConnection(con1);
+                                            });
+                                        })
+                                        con3.commit(function(err){
+                                            if (err) throw err;
+        
+                                            con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function(err){
+                                                if (err) throw err;
+                                                closeConnection(con3);
+                                            });
+                                        })
+                                    });
+                                });
+                            });
+                        });
+                    }
+                });
+            });
+        });
     });
 }
 
