@@ -189,44 +189,87 @@ function newInsert(name, year, rank, genre, director){
 }
 
 function reallyNewInsert(name, year, rank, genre, director){
-    // TODO: error handling - rollback (?)
-    con1.beginTransaction(function(err){
-        con1.query("INSERT INTO recovery_log (type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", ['START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function(err, results){
-            if (err) throw err;
+    con1.beginTransaction(function(err1){
+        con1.query("INSERT INTO recovery_log (type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?);", ['START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function(err1, results){
+            if(err1){
+                return con1.rollback(function(){
+                    throw err1;
+                });
+            }
+            
             var txnId = results.insertId;
+            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err1){
+                if(err1){
+                    return con1.rollback(function(){
+                        throw err1;
+                    });
+                }
 
-            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err){
-                if (err) throw err;
-
-                con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err){
-                    if (err) throw err;
+                con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err1){
+                    if(err1){
+                        return con1.rollback(function(){
+                            throw err1;
+                        });
+                    }
                     
                     if(year < 1980){
-                        con2.beginTransaction(function(err){
-                            if (err) throw err;
+                        con2.beginTransaction(function(err2){
+                            if(err2){
+                                return con2.rollback(function(){
+                                    throw err2;
+                                });
+                            }
 
-                            con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function(err){
-                                if(err) throw err;
+                            con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function(err2){
+                                if(err2){
+                                    return con2.rollback(function(){
+                                        throw err2;
+                                    });
+                                }
 
-                                con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err){
-                                    if (err) throw err;
+                                con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err2){
+                                    if(err2){
+                                        return con2.rollback(function(){
+                                            throw err2;
+                                        });
+                                    }
     
-                                    con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err){
-                                        if (err) throw err;
+                                    con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err2){
+                                        if(err2){
+                                            return con2.rollback(function(){
+                                                throw err2;
+                                            });
+                                        }
     
-                                        con1.commit(function(err){
-                                            if(err) throw err;
+                                        con1.commit(function(err1){
+                                            if(err1){
+                                                return con1.rollback(function(){
+                                                    throw err1;
+                                                });
+                                            }
     
-                                            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function(err) {
-                                                if (err) throw err;
+                                            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function(err1) {
+                                                if(err1){
+                                                    return con1.rollback(function(){
+                                                        throw err1;
+                                                    });
+                                                }
                                                 closeConnection(con1);
                                             });
                                         })
-                                        con2.commit(function(err){
-                                            if (err) throw err;
+                                        con2.commit(function(err2){
+                                            if(err2){
+                                                return con2.rollback(function(){
+                                                    throw err2;
+                                                });
+                                            }
                                             
-                                            con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function (err) {
-                                                if (err) throw err;
+                                            con2.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function (err2) {
+                                                if(err2){
+                                                    return con2.rollback(function(){
+                                                        throw err2;
+                                                    });
+                                                }
                                                 closeConnection(con2);
                                             });
                                         });
@@ -238,31 +281,63 @@ function reallyNewInsert(name, year, rank, genre, director){
                     }
 
                     if(year >= 1980){
-                        con3.beginTransaction(function(err){
-                            if (err) throw err;
+                        con3.beginTransaction(function(err3){
+                            if(err3){
+                                return con3.rollback(function(){
+                                    throw err3;
+                                });
+                            }
 
-                            con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function (err){
-                                if (err) throw err;
+                            con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'START', 'startTxn', 0, 0, 'startTxn', 'startTxn'], function (err3){
+                                if(err3){
+                                    return con3.rollback(function(){
+                                        throw err3;
+                                    });
+                                }
                                 
-                                con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err){
-                                    if (err) throw err;
+                                con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'INSERT', name, year, rank, genre, director], function(err3){
+                                    if(err3){
+                                        return con3.rollback(function(){
+                                            throw err3;
+                                        });
+                                    }
         
-                                    con3.query("INSERT INTO final_movies_post1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err){
-                                        if (err) throw err;
+                                    con3.query("INSERT INTO final_movies_post1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function(err3){
+                                        if(err3){
+                                            return con3.rollback(function(){
+                                                throw err3;
+                                            });
+                                        }
         
-                                        con1.commit(function(err){
-                                            if(err) throw err;
+                                        con1.commit(function(err1){
+                                            if(err1){
+                                                return con1.rollback(function(){
+                                                    throw err1;
+                                                });
+                                            }
         
-                                            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function (err) {
-                                                if (err) throw err;
+                                            con1.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function (err1) {
+                                                if(err1){
+                                                    return con1.rollback(function(){
+                                                        throw err1;
+                                                    });
+                                                }
                                                 closeConnection(con1);
                                             });
                                         })
-                                        con3.commit(function(err){
-                                            if (err) throw err;
+                                        con3.commit(function(err3){
+                                            if(err3){
+                                                return con3.rollback(function(){
+                                                    throw err3;
+                                                });
+                                            }
         
-                                            con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function(err){
-                                                if (err) throw err;
+                                            con3.query("INSERT INTO recovery_log (transaction_id, type, name, year, `rank`, genre, director) VALUES (?,?,?,?,?,?,?);", [txnId, 'COMMIT', 'commitTxn', 0, 0, 'commitTxn', 'commitTxn'], function(err3){
+                                                if(err3){
+                                                    return con3.rollback(function(){
+                                                        throw err3;
+                                                    });
+                                                }
                                                 closeConnection(con3);
                                             });
                                         })
