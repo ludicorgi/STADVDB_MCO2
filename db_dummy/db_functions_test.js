@@ -207,6 +207,9 @@ function setAllIsolationLevel(isolationLevel){
     setIsolationLevel(con2, isolationLevel);
     setIsolationLevel(con3, isolationLevel);
     setIsolationLevel(connections.con1Clone, isolationLevel);
+    setIsolationLevel(connections.con2Clone, isolationLevel);
+    setIsolationLevel(connections.con3Clone, isolationLevel);
+
 }
 
 module.exports = {closeConnection, searchRecord, insertOneRecordIntoAllNodes, setIsolationLevel, setAllIsolationLevel};
