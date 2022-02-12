@@ -70,6 +70,15 @@ button{
     flex: 1;
 }
 
+.inputlabel{
+    width: 100px;
+    display: inline-block;
+}
+
+.w3-container .row input{
+    width: 350px;
+}
+
 .h-spacer20{
     height: 20px;
 }

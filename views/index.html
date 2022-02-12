@@ -43,7 +43,6 @@
                 <table style="width:100%; text-align: left;">
                     <thead class="bgblack">
                         <tr>
-                            <th scope="col">id</th>
                             <th scope="col">Movie Name</th>
                             <th scope="col">Year</th>
                             <th scope="col">Rank</th>
@@ -54,7 +53,6 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>...</td>
                             <td>...</td>
                             <td>...</td>
                             <td>...</td>
@@ -76,11 +74,16 @@
                 <h2 style="margin-bottom: 15px;">Add New Movie</h2>
             </header>
             <div class="w3-container">
-                <div class="row">Movie Name<input style="margin:3px;" type="text"></div>
-                <div class="row">Year<input style="margin:3px;" type="text"></div>
-                <div class="row">Rank<input style="margin:3px;" type="text"></div>
-                <div class="row">Genre<input style="margin:3px;" type="text"></div>
-                <div class="row">Director<input style="margin:3px;" type="text"></div>
+                <div class="row"><span class="inputlabel">Movie Name</span>
+                    <input id="add_name" style="margin:3px;" type="text"></div>
+                <div class="row"><span class="inputlabel">Year</span>
+                    <input id="add_year" style="margin:3px;" type="text"></div>
+                <div class="row"><span class="inputlabel">Rank</span>
+                    <input id="add_rank" style="margin:3px;" type="text"></div>
+                <div class="row"><span class="inputlabel">Genre</span>
+                    <input id="add_genre" style="margin:3px;" type="text"></div>
+                <div class="row"><span class="inputlabel">Director</span>
+                    <input id="add_director" style="margin:3px;" type="text"></div>
             </div>
             <footer class="w3-container bgblack" style="padding-top: 10px;padding-bottom: 10px;">
                 <button>Add</button>
@@ -96,23 +99,41 @@
                 <h2 style="margin-bottom: 15px;">Data Report</h2>
             </header>
             <div class="w3-container">
-                <p>....</p>
+                <div class="row"><span class="inputlabel">Report1</span>
+                    <span>[RESULT]</span></div>
+                <div class="row"><span class="inputlabel">Report1</span>
+                    <span>[RESULT]</span></div>
+                <div class="row"><span class="inputlabel">Report1</span>
+                    <span>[RESULT]</span></div>
+                <div class="row"><span class="inputlabel">Report1</span>
+                    <span>[RESULT]</span></div>
+                <div class="row"><span class="inputlabel">Report1</span>
+                    <span>[RESULT]</span></div>
             </div>
         </div>
     </div>
 
     <!-- MODAL VIEW AND EDIT -->
     <div id="modal_edit" class="w3-modal">
-        <div class="w3-modal-content medium w3-animate-top w3-card-4">
+        <div class="w3-modal-content small w3-animate-top w3-card-4">
             <header class="w3-container bgblack"> 
                 <span id="span_modal_edit" class="w3-button w3-display-topright">&times;</span>
                 <h2 style="margin-bottom: 15px;">Edit Data</h2>
             </header>
             <div class="w3-container">
-                <p>....</p>
+                <div class="row"><span class="inputlabel">Movie Name</span>
+                    <input id="update_name" style="margin:3px;" type="text" value="Loading..."></div>
+                <div class="row"><span class="inputlabel" value="name">Year</span>
+                    <input id="update_year" style="margin:3px;" type="text" value="Loading..."></div>
+                <div class="row"><span class="inputlabel">Rank</span>
+                    <input id="update_rank" style="margin:3px;" type="text" value="Loading..."></div>
+                <div class="row"><span class="inputlabel">Genre</span>
+                    <input id="update_genre" style="margin:3px;" type="text" value="Loading..."></div>
+                <div class="row"><span class="inputlabel">Director</span>
+                    <input id="update_director" style="margin:3px;" type="text" value="Loading..."></div>
             </div>
             <footer class="w3-container bgblack" style="padding-top: 10px;padding-bottom: 10px;">
-                <button>Save</button>
+                <button>Save Changes</button>
             </footer>
         </div>
     </div>
