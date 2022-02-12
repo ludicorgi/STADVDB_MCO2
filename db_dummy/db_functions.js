@@ -60,6 +60,238 @@ async function searchRecord(field, value){
     });
 };
 
+function newSearch(field, value) {
+    let queryNode1 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE ?? = ?;";
+    let queryNode2 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_pre1980 WHERE ?? = ?;";
+    let queryNode3 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE ?? = ?;";
+
+    let values = [(field), (value)];
+
+    // search node 1
+    con1.beginTransaction((errNode1) => {
+        if (errNode1) {
+            // check other nodes
+            if (field == 'year') {
+                if (value > 1980) {
+                    //node3
+                    con3.beginTransaction((errNode3) => {
+                        if (errNode3) throw err;
+                        else {
+                            // transaction began
+                            con3.query("LOCK TABLES movies_post1980 READ", (err) => {
+                                if (err) throw err;
+                                else {
+                                    // locking was successful
+                                    con3.query(queryNode3, values, (err, res) => {
+                                        if (err) {
+                                            con3.rollback((err) => {
+                                                if (err) throw err;
+                                                closeConnection(con3);
+                                            });
+                                        } else {
+                                            // query was successful
+                                            con3.query("UNLOCK TABLES", (err) => {
+                                                if (err) {
+                                                    con3.rollback((err) => {
+                                                        if (err) throw err;
+                                                        closeConnection(con3);
+                                                    });
+                                                } else {
+                                                    // unlocking was successful
+                                                    con3.commit((err) => {
+                                                        if (err) con3.rollback((err) => {
+                                                            if (err) throw err;
+                                                            closeConnection(con3);
+                                                        });
+                                                        // commit was successful
+                                                        closeConnection(con3);
+                                                        return JSON.stringify(res);
+                                                    });
+                                                };
+                                            });
+                                        };
+                                    });
+                                };
+                            });
+                        };
+                    });
+                } else {
+                    //node2
+                    con2.beginTransaction((errNode2) => {
+                        if (errNode2) throw err;
+                        else {
+                            // transaction began
+                            con2.query("LOCK TABLES movies_pre1980 READ", (err) => {
+                                if (err) throw err;
+                                else {
+                                    // locking successful
+                                    con2.query(queryNode2, values, (err, res) => {
+                                        if (err) {
+                                            con2.rollback((err) => {
+                                                if (err) throw err;
+                                                closeConnection(con2);
+                                            });
+                                        } else {
+                                            // query successful
+                                            con2.query("UNLOCK TABLES", (err) => {
+                                                if (err) {
+                                                    con2.rollback((err) => {
+                                                        if (err) throw err;
+                                                        closeConnection(con2);
+                                                    });
+                                                } else {
+                                                    // unlocking successful
+                                                    con2.commit((err) => {
+                                                        if (err) con2.rollback((err) => {
+                                                            if (err) throw err;
+                                                            closeConnection(con2);
+                                                            return JSON.stringify(res);
+                                                        });
+                                                    });
+                                                };
+                                            });
+                                        };
+                                    });
+                                };
+                            });
+                        };
+                    });
+                };
+            }else{
+                // field is not year
+                con2.beginTransaction((errNode2) => {
+                    if (errNode2) throw err;
+                    else {
+                        // transaction began
+                        con2.query("LOCK TABLES movies_pre1980 READ", (err) => {
+                            if (err) throw err;
+                            else {
+                                // locking successful
+                                con2.query(queryNode2, values, (err, res) => {
+                                    if (err) {
+                                        con2.rollback((err) => {
+                                            if (err) throw err;
+                                            closeConnection(con2);
+                                        });
+                                    } else if(res.length > 0){
+                                        // result is in node
+                                        con2.query("UNLOCK TABLES", (err) => {
+                                            if (err) {
+                                                con2.rollback((err) => {
+                                                    if (err) throw err;
+                                                    closeConnection(con2);
+                                                });
+                                            } else {
+                                                // unlock successful
+                                                con2.commit((err) => {
+                                                    if (err) con2.rollback((err) => {
+                                                        if (err) throw err;
+                                                    });
+                                                    closeConnection(con2)
+                                                    return JSON.stringify(res);
+                                                });
+                                            };
+                                        });
+                                    } else {
+                                        // not in this node
+                                        con2.rollback((err) => {
+                                            if(err) throw err;
+                                            closeConnection(con2);
+                                        });
+                                    };
+                                });
+                            };
+                        });
+                    };
+                });
+
+                con3.beginTransaction((errNode3) => {
+                    if (errNode3) throw err;
+                    else {
+                        // transaction began
+                        con3.query("LOCK TABLES movies_post1980 READ", (err) => {
+                            if (err) throw err;
+                            else {
+                                // locking succesful
+                                con3.query(queryNode3, values, (err, res) => {
+                                    if (err) {
+                                        con3.rollback((err) => {
+                                            if (err) throw err;
+                                            closeConnection(con3);
+                                        });
+                                    } else if(res.length > 0){
+                                        // is in this node
+                                        con3.query("UNLOCK TABLES", (err) => {
+                                            if (err) {
+                                                con3.rollback((err) => {
+                                                    if (err) throw err;
+                                                    closeConnection(con3);
+                                                });
+                                            } else {
+                                                // unlocking successful
+                                                con3.commit((err) => {
+                                                    if (err) con3.rollback((err) => {
+                                                        if (err) throw err;
+                                                    });
+                                                    closeConnection(con3);
+                                                    return JSON.stringify(res);
+                                                });
+                                            };
+                                        });
+                                    } else {
+                                        // not in this node
+                                        con3.rollback((err) => {
+                                            if(err) throw err;
+                                            closeConnection(con3);
+                                        });
+                                    };
+                                });
+                            };
+                        });
+                    };
+                });
+            }
+        } else {
+            con1.query("LOCK TABLES movies_all READ", (err) => {
+                if (err) {
+                    con1.rollback((err) => {
+                        if (err) throw err;
+                        closeConnection(con1);
+                    });
+                } else {
+                    // locking successful
+                    con1.query(queryNode1, values, (err, res) => {
+                        if (err) {
+                            con1.rollback((err) => {
+                                if (err) throw err;
+                                closeConnection(con1);
+                            });
+                        } else {
+                            // query successful
+                            con1.query("UNLOCK TABLES", (err) => {
+                                if (err) {
+                                    con1.rollback((err) => {
+                                        if (err) throw err;
+                                        closeConnection(con1);
+                                    });
+                                } else {
+                                    // unlock successful
+                                    con1.commit((err) => {
+                                        if (err) throw err;
+                                        // commit successful
+                                        closeConnection(con1);
+                                        return JSON.stringify(res);
+                                    });
+                                };
+                            });
+                        };
+                    });
+                };
+            });
+        };
+    });
+};
+
 function insertOneRecordIntoAllNodes(name, year, rank, genre, director){
     values = [name, year, rank, genre, director];
 
