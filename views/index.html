@@ -26,7 +26,7 @@
 
                 <button id="btn_search" style="margin:3px;">Search</button>
 
-                <select style="margin:3px;">
+                <select id="search_field" style="margin:3px;">
                     <option value="">Movie Name</option>
                     <option value="">Director</option>
                     <option value="">Year</option>
@@ -34,7 +34,7 @@
                     <option value="">Genre</option>
                 </select>
 
-                <div style="flex:1"><input style="width: 100%; margin:3px;" type="text"></div>
+                <div style="flex:1"><input id="search_value" style="width: 100%; margin:3px;" type="text"></div>
             </div>
 
             <div class="h-spacer20"></div>
@@ -86,7 +86,7 @@
                     <input id="add_director" style="margin:3px;" type="text"></div>
             </div>
             <footer class="w3-container bgblack" style="padding-top: 10px;padding-bottom: 10px;">
-                <button>Add</button>
+                <button id="btn_modal_add_movie">Add</button>
             </footer>
         </div>
     </div>
@@ -133,7 +133,7 @@
                     <input id="update_director" style="margin:3px;" type="text" value="Loading..."></div>
             </div>
             <footer class="w3-container bgblack" style="padding-top: 10px;padding-bottom: 10px;">
-                <button>Save Changes</button>
+                <button id="btn_modal_update_movie">Save Changes</button>
             </footer>
         </div>
     </div>
