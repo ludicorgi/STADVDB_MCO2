@@ -36,11 +36,11 @@
                 <button id="btn_search" style="margin:3px;">Search</button>
 
                 <select id="search_field" style="margin:3px;">
-                    <option value="">Movie Name</option>
-                    <option value="">Director</option>
-                    <option value="">Year</option>
-                    <option value="">Rank</option>
-                    <option value="">Genre</option>
+                    <option value="name">Movie Name</option>
+                    <option value="director">Director</option>
+                    <option value="year">Year</option>
+                    <option value="rank">Rank</option>
+                    <option value="genre">Genre</option>
                 </select>
 
                 <div style="flex:1"><input id="search_value" style="width: 100%; margin:3px;" type="text"></div>
@@ -126,7 +126,8 @@
                 <h2 style="margin-bottom: 15px;">Edit Data</h2>
             </header>
             <div class="w3-container">
-                <div class="row"><span class="inputlabel">Movie Name</span> Loading...</div>
+                <div class="row"><span class="inputlabel">Movie Name</span>
+                    <input id="update_name" style="margin:3px;" type="text" value="Loading..."></div>
                 <div class="row"><span class="inputlabel" value="name">Year</span>
                     <input id="update_year" style="margin:3px;" type="text" value="Loading..."></div>
                 <div class="row"><span class="inputlabel">Rank</span>
@@ -141,7 +142,10 @@
             </footer>
         </div>
     </div>
-
+    <!-- Jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.js"
+    integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+    crossorigin="anonymous"></script>
     <script type="text/javascript" src="/index.js"></script>
 </body>
 </html>

@@ -41,14 +41,16 @@ span_add.onclick = function() {
 
 btn_modal_add.onclick = function() {
     let data = {
-        name: add_name,
-        year: add_year,
-        rank: add_rank,
-        genre: add_genre,
-        director: add_director
+        name: add_name.value,
+        year: add_year.value,
+        rank: add_rank.value,
+        genre: add_genre.value,
+        director: add_director.value
     };
+    // console.log(data);
     $.post('/add_movie', data, function(res){
         // idk prob show alert or something
+        console.log(res);
     });
 }
 
@@ -70,24 +72,27 @@ span_edit.onclick = function() {
 
 btn_modal_update.onclick = function(){
     let data = {
-        name: edit_name,
-        year: edit_director,
-        rank: edit_rank,
-        genre: edit_genre,
-        director: edit_director
+        name: edit_name.value,
+        year: edit_director.value,
+        rank: edit_rank.value,
+        genre: edit_genre.value,
+        director: edit_director.value
     };
+    console.log(data);
     $.post('edit_movie', data, function(res){
-
+        console.log(res);
     });
 }
 
 btn_search.onclick = function(){
     let data = {
-        field : search_field,
-        value : search_value
+        field : search_field.value,
+        value : search_value.value,
     };
-    $.get('/search_movies', data, function(res){
+    console.log(data);
+    $.get('/search_movie', data, function(res){
         // show results
+        console.log(res);
     });
 }
 
