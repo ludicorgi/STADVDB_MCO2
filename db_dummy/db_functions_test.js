@@ -220,7 +220,7 @@ function newSearch(field, value, callback) {
 
     // search node 1
     con1.beginTransaction((errNode1) => {
-        if (true || errNode1) {
+        if (errNode1) {
             // check other nodes
             if (field == 'year') {
                 if (value > 1980) {
