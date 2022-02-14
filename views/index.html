@@ -17,10 +17,19 @@
 
             <div class="h-spacer20"></div> <div class="h-spacer20"></div>
 
-            <div class="row">
+            <div class="row" style="display: flex;">
                 <button id="btn_modal_add">+ Add New Movie</button> 
+                <span style="border-left: 3px solid black; margin-right: 3px; margin-left: 3px;"></span>
                 <button id="btn_modal_report">Generate Report</button>
+                <div style="flex:2">
+                    <input style="width: 100%; margin:3px;" placeholder="Enter Genre" type="text"></div>
+                <div style="flex:1">
+                    <input style="width: 100%; margin:3px;" placeholder="Enter Year" type="text"></div>
+                <div style="flex:2">
+                    <input style="width: 100%; margin:3px;" placeholder="Enter Director" type="text"></div>
             </div>
+
+            <hr class="solid" style="margin-top: 5px;margin-bottom: 3px;border-color: #b9b9b9;">
 
             <div class="row" style="display: flex; width: 800px; ">
 
@@ -86,7 +95,7 @@
                     <input id="add_director" style="margin:3px;" type="text"></div>
             </div>
             <footer class="w3-container bgblack" style="padding-top: 10px;padding-bottom: 10px;">
-                <button>Add</button>
+                <button id="add">Add</button>
             </footer>
         </div>
     </div>
@@ -99,15 +108,11 @@
                 <h2 style="margin-bottom: 15px;">Data Report</h2>
             </header>
             <div class="w3-container">
-                <div class="row"><span class="inputlabel">Report1</span>
+                <div class="row"><span class="reportlabel">Total Number of Movies</span>
                     <span>[RESULT]</span></div>
-                <div class="row"><span class="inputlabel">Report1</span>
+                <div class="row"><span class="reportlabel">Number of [GENRE] Movies in [YEAR]</span>
                     <span>[RESULT]</span></div>
-                <div class="row"><span class="inputlabel">Report1</span>
-                    <span>[RESULT]</span></div>
-                <div class="row"><span class="inputlabel">Report1</span>
-                    <span>[RESULT]</span></div>
-                <div class="row"><span class="inputlabel">Report1</span>
+                <div class="row"><span class="reportlabel">Number of [GENRE] Movies in [YEAR] by [DIRECTOR]</span>
                     <span>[RESULT]</span></div>
             </div>
         </div>
@@ -121,8 +126,7 @@
                 <h2 style="margin-bottom: 15px;">Edit Data</h2>
             </header>
             <div class="w3-container">
-                <div class="row"><span class="inputlabel">Movie Name</span>
-                    <input id="update_name" style="margin:3px;" type="text" value="Loading..."></div>
+                <div class="row"><span class="inputlabel">Movie Name</span> Loading...</div>
                 <div class="row"><span class="inputlabel" value="name">Year</span>
                     <input id="update_year" style="margin:3px;" type="text" value="Loading..."></div>
                 <div class="row"><span class="inputlabel">Rank</span>
@@ -133,7 +137,7 @@
                     <input id="update_director" style="margin:3px;" type="text" value="Loading..."></div>
             </div>
             <footer class="w3-container bgblack" style="padding-top: 10px;padding-bottom: 10px;">
-                <button>Save Changes</button>
+                <button id="update_save">Save Changes</button>
             </footer>
         </div>
     </div>
