@@ -211,7 +211,7 @@ function setAllIsolationLevel(isolationLevel) {
     setIsolationLevel(connections.con3Clone, isolationLevel);
 }
 
-function newSearch(field, value) {
+function newSearch(field, value, callback) {
     let queryNode1 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE ?? = ?;";
     let queryNode2 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_pre1980 WHERE ?? = ?;";
     let queryNode3 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE ?? = ?;";
@@ -220,7 +220,7 @@ function newSearch(field, value) {
 
     // search node 1
     con1.beginTransaction((errNode1) => {
-        if (errNode1) {
+        if (true || errNode1) {
             // check other nodes
             if (field == 'year') {
                 if (value > 1980) {

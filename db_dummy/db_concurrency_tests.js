@@ -334,14 +334,14 @@ async function runAllTests() {
 }
 
 async function testSearch(){
-    // director >1980
-    // director <1980
-    // year >1980
-    // year <1980
+    // director >1980 Hye Jung Park 2
+    // director <1980 Frank Moser 442
+    // year >1980 1979 3559
+    // year <1980 1981 3511
 
-    db.newSearch('year', '1980', (res)=>{
+    db.newSearch('year', '1981', (res)=>{
         console.log(res[0],res.length);
     });
 }
-// testSearch();
+testSearch();
 // runAllTests();
