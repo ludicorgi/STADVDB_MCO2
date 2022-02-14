@@ -60,7 +60,7 @@ async function searchRecord(field, value){
     });
 };
 
-function newSearch(field, value) {
+function newSearch(field, value, callback) {
     let queryNode1 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE ?? = ?;";
     let queryNode2 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_pre1980 WHERE ?? = ?;";
     let queryNode3 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE ?? = ?;";
