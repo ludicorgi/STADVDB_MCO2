@@ -39,7 +39,7 @@ async function concurrencyTest1() {
         })
     })
 
-    await sleep(3000);
+    await sleep(1000);
     con1Clone.beginTransaction((err) => {
         if (err) throw err
         con1Clone.query("LOCK TABLES movies_all READ", (err) => {
@@ -61,7 +61,7 @@ async function concurrencyTest1() {
     })
 
 
-    await sleep(1000);
+    await sleep(2000);
     if (t1res == fixedRes && t2res == fixedRes) {
         console.log("Pass");
     } else console.log("Fail");
@@ -78,106 +78,190 @@ async function concurrencyTest2(option) {
     } else {
         rank = 7
     }
-    con1.beginTransaction((err) => {
-        if (err) throw err
-        con1.query("LOCK TABLE movies_all WRITE", (err) => {
-            if (err) throw err
-            con3.query("LOCK TABLE movies_post1980 WRITE", (err) => {
-                if (err) throw err
-                console.log("Transaction 1:")
-                con1.query("UPDATE movies_all SET `rank`= " + rank + " WHERE id=1", (err, res) => { // rank is null before
-                    console.log("Transaction 1 Node 1 updated");
+
+            con3.query("LOCK TABLE movies_post1980 WRITE", async (err) => {
+                con1.query("LOCK TABLE movies_all WRITE", (err) => {
                     if (err) throw err
-                    // con1.query("DO SLEEP(20)", (err) => {
-                    con3.beginTransaction((err) => {
-                        console.log("Sub transaction 1 started");
+                    con1.query("SET autocommit = 0", (err) => {
                         if (err) throw err
-                        con3.query("UPDATE movies_post1980 SET `rank`= " + rank + " WHERE id=1", (err) => {
-                            console.log("Transaction 1 Node 3 updated");
+                        if (err) throw err
+                        console.log("Transaction 1:")
+                        con1.query("UPDATE movies_all SET `rank`= " + rank + " WHERE id=1", (err, res) => { // rank is null before
+                            console.log("Transaction 1 Node 1 updated");
                             if (err) throw err
-                            con3.query("DO SLEEP(4)", (err) => {
-                                if (err) throw err
-                                con3.commit((err) => {
+                            con1.query("DO SLEEP(8)", (err) => {
+                                console.log("8 Sleep over");
+                                con3.query("SET autocommit = 0", (err) => {
+                                    console.log("Sub transaction 1 started");
                                     if (err) throw err
-                                    console.log("Transaction 1 Node 3 committed");
-                                    con1.query("UNLOCK TABLES", (err) => {
+                                    con3.query("UPDATE movies_post1980 SET `rank`= " + rank + " WHERE id=1", (err) => {
+                                        console.log("Transaction 1 Node 3 updated");
                                         if (err) throw err
-                                        con3.query("UNLOCK TABLES", (err) => {
+                                        con3.query("DO SLEEP(4)", (err) => {
+                                            console.log("4 Sleep over");
+                                            // if (err) throw err
+                                            con3.commit((err) => {
+                                                if (err) throw err
+                                                console.log("Transaction 1 Node 3 committed");
+                                                con1.query("UNLOCK TABLES", (err) => {
+                                                    console.log("Transaction 1 Node 1 UNLOCKED");
+                                                    if (err) throw err
+                                                    con3.query("UNLOCK TABLES", (err) => {
+                                                        console.log("Transaction 1 Node 3 UNLOCKED");
+                                                        if (err) throw err
+                                                        con1.commit((err) => {
+                                                            console.log("Transaction 1 End Transaction");
+                                                            if (err) throw err
+                                                        })
+                                                    })
+                                                })
+                                                // read node 1
+                                                con1Clone.query("SET autocommit = 0", (err) => {
+                                                    if (err) throw err
+                                                    console.log("Transaction 2-2:");
+                                                    con1Clone.query("LOCK TABLE movies_all READ", (err) => {
+                                                        console.log("Transaction 2-2 Locked");
+                                                        if (err) throw err
+                                                        con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
+                                                            if (err) throw err
+                                                            con1Clone.query("UNLOCK TABLES", (err) => {
+                                                                if (err) throw err
+                                                                con1Clone.commit((err) => {
+                                                                    t2res = res[0].rank;
+                                                                    console.log("Transaction 2-2 committed", [t2res, rank]);
+                                                                    if (err) throw err
+                                                                })
+                                                            })
+                                                        })
+                                                    })
+                                                })
+                                                // read node 3
+                                                con3Clone.query("SET autocommit = 0", (err) => {
+                                                    if (err) throw err
+                                                    console.log("Transaction 3-2:");
+                                                    con3Clone.query("LOCK TABLE movies_post1980 READ", (err) => {
+                                                        console.log("Transaction 3-2 Locked");
+                                                        con3Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
+                                                            if (err) throw err
+                                                            con3Clone.query("UNLOCK TABLES", (err) => {
+                                                                if (err) throw err
+                                                                con3Clone.commit((err) => {
+                                                                    t3res = res[0].rank;
+                                                                    console.log("Transaction 3-2 committed", [t3res, rank]);
+                                                                    if (err) throw err
+                                                                })
+                                                            })
+                                                        })
+                                                    })
+                                                })
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                            // read node 1
+                            con1Clone.query("SET autocommit = 0", (err) => {
+                                if (err) throw err
+                                console.log("Transaction 2-1:");
+                                con1Clone.query("LOCK TABLE movies_all READ", (err) => {
+                                    console.log("Transaction 2-1 Locked");
+                                    if (err) throw err
+                                    con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
+                                        if (err) throw err
+                                        con1Clone.query("UNLOCK TABLES", (err) => {
                                             if (err) throw err
-                                            con1.commit((err) => {
-                                                console.log("Transaction 1 End Transaction");
+                                            con1Clone.commit((err) => {
+                                                t2res = res[0].rank;
+                                                console.log("Transaction 2-1 committed", [t2res, rank]);
                                                 if (err) throw err
                                             })
                                         })
                                     })
-                                });
-                            });
+                                })
+                            })
+                            // read node 3
+
+                            con3Clone.query("SET autocommit = 0", (err) => {
+                                if (err) throw err
+                                console.log("Transaction 3-1:");
+                                con3Clone.query("LOCK TABLE movies_post1980 READ", (err) => {
+                                    console.log("Transaction 3-1 Locked");
+                                    con3Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
+                                        if (err) throw err
+                                        con3Clone.query("UNLOCK TABLES", (err) => {
+                                            if (err) throw err
+                                            con3Clone.commit((err) => {
+                                                t3res = res[0].rank;
+                                                console.log("Transaction 3-1 committed", [t3res, rank]);
+                                                if (err) throw err
+                                            })
+                                        })
+                                    })
+                                })
+                            })
                         });
-                    });
-                    // });
+                    })
                 });
-            })
-        });
-    })
+            });
     con1.query('SELECT @@transaction_ISOLATION;', (err, res) => {
         console.log(res);
     })
-    await sleep(1000);
-    con1Clone.beginTransaction((err) => {
-        if (err) throw err
-        console.log("Transaction 2:");
-        con1Clone.query("LOCK TABLE movies_all READ", (err) => {
-            if (err) throw err
-            con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
-                if (err) throw err
-                con1Clone.query("UNLOCK TABLES", (err) => {
-                    if (err) throw err
-                    con1Clone.commit((err) => {
-                        t2res = res[0].rank;
-                        console.log("Transaction 2 committed", [t2res, rank]);
-                        if (err) throw err
-                    })
-                })
-            })
-        })
-    })
-    await sleep(1000);
-    con3Clone.beginTransaction((err) => {
-        if (err) throw err
-        console.log("Transaction 3:");
-        con3Clone.query("LOCK TABLE movies_post1980 READ", (err) => {
-            con3Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
-                if (err) throw err
-                con3Clone.query("UNLOCK TABLES", (err) => {
-                    if (err) throw err
-                    con3Clone.commit((err) => {
-                        t3res = res[0].rank;
-                        console.log("Transaction 3 committed", [t3res, rank]);
-                        if (err) throw err
-                    })
-                })
-            })
-        })
-    })
-    await sleep(8000);
-    // T2 should be updated
-    if (t2res == rank) {
-        console.log("T2 " + t2res + ":" + rank);
-        console.log('T2 pass');
-    } else {
-        console.log("T2 " + t2res + ":" + rank);
-        console.log('T2 fail');
-    }
+    // await sleep(500);
+    // con1Clone.beginTransaction((err) => {
+    //     if (err) throw err
+    //     console.log("Transaction 2:");
+    //     con1Clone.query("LOCK TABLE movies_all READ", (err) => {
+    //         if (err) throw err
+    //         con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
+    //             if (err) throw err
+    //             con1Clone.query("UNLOCK TABLES", (err) => {
+    //                 if (err) throw err
+    //                 con1Clone.commit((err) => {
+    //                     t2res = res[0].rank;
+    //                     console.log("Transaction 2 committed", [t2res, rank]);
+    //                     if (err) throw err
+    //                 })
+    //             })
+    //         })
+    //     })
+    // })
+    // await sleep(1000);
+    // con3Clone.beginTransaction((err) => {
+    //     if (err) throw err
+    //     console.log("Transaction 3:");
+    //     con3Clone.query("LOCK TABLE movies_post1980 READ", (err) => {
+    //         con3Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
+    //             if (err) throw err
+    //             con3Clone.query("UNLOCK TABLES", (err) => {
+    //                 if (err) throw err
+    //                 con3Clone.commit((err) => {
+    //                     t3res = res[0].rank;
+    //                     console.log("Transaction 3 committed", [t3res, rank]);
+    //                     if (err) throw err
+    //                 })
+    //             })
+    //         })
+    //     })
+    // })
+    // await sleep(8000);
+    // // T2 should be updated
+    // if (t2res == rank) {
+    //     console.log("T2 " + t2res + ":" + rank);
+    //     console.log('T2 pass');
+    // } else {
+    //     console.log("T2 " + t2res + ":" + rank);
+    //     console.log('T2 fail');
+    // }
 
-    if (t3res == rank) {
-        console.log("T3 " + t3res + ":" + rank);
-        console.log('T3 pass');
-    } else {
-        console.log("T3 " + t3res + ":" + rank);
-        console.log('T3 fail');
-    }
+    // if (t3res == rank) {
+    //     console.log("T3 " + t3res + ":" + rank);
+    //     console.log('T3 pass');
+    // } else {
+    //     console.log("T3 " + t3res + ":" + rank);
+    //     console.log('T3 fail');
+    // }
 
-    await sleep(1000);
+    await sleep(10000);
     con3.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
         if (err) throw err
 
@@ -318,30 +402,30 @@ function sleep(ms) {
 }
 async function runAllTests() {
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
         if (i == 0) db.setAllIsolationLevel('read uncommitted');
         else if (i == 1) db.setAllIsolationLevel('read committed');
         else if (i == 2) db.setAllIsolationLevel('repeatable read');
         else if (i == 3) db.setAllIsolationLevel('serializable');
-        await sleep(2000);
-        await concurrencyTest1();
-        console.log("----");
+        await sleep(10000);
+        // await concurrencyTest1();
+        // console.log("----");
         await concurrencyTest2(i);
-        console.log("----");
-        await concurrencyTest3(i);
+        // console.log("----");
+        // await concurrencyTest3(i);
     }
 
 }
 
-async function testSearch(){
+async function testSearch() {
     // director >1980 Hye Jung Park 2
     // director <1980 Frank Moser 442
     // year >1980 1979 3559
     // year <1980 1981 3511
 
-    db.newSearch('year', '1981', (res)=>{
-        console.log(res[0],res.length);
-    });
+    // db.newSearch('year', '1981', (res)=>{
+    //     console.log(res[0],res.length);
+    // });
 }
-testSearch();
-// runAllTests();
+// testSearch();
+runAllTests();
