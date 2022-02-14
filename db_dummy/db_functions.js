@@ -1455,7 +1455,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                                 throw err3;
                                                             });
                                                         }
-                                                        con3.query("UNLOCK MOVIES", function (err3) {
+                                                        con3.query("UNLOCK TABLES", function (err3) {
                                                             if (err3) {
                                                                 return con3.rollback(function () {
                                                                     throw err3;
