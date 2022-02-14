@@ -105,7 +105,7 @@ function newSearch(field, value) {
                                                         });
                                                         // commit was successful
                                                         closeConnection(con3);
-                                                        return JSON.stringify(res);
+                                                        return callback(res);
                                                     });
                                                 };
                                             });
@@ -144,9 +144,9 @@ function newSearch(field, value) {
                                                     con2.commit((err) => {
                                                         if (err) con2.rollback((err) => {
                                                             if (err) throw err;
-                                                            closeConnection(con2);
-                                                            return JSON.stringify(res);
                                                         });
+                                                        closeConnection(con2);
+                                                        return callback(res);
                                                     });
                                                 };
                                             });
@@ -188,7 +188,7 @@ function newSearch(field, value) {
                                                         if (err) throw err;
                                                     });
                                                     closeConnection(con2)
-                                                    return JSON.stringify(res);
+                                                    return callback(res);
                                                 });
                                             };
                                         });
@@ -234,7 +234,7 @@ function newSearch(field, value) {
                                                         if (err) throw err;
                                                     });
                                                     closeConnection(con3);
-                                                    return JSON.stringify(res);
+                                                    return callback(res);
                                                 });
                                             };
                                         });
@@ -280,7 +280,7 @@ function newSearch(field, value) {
                                         if (err) throw err;
                                         // commit successful
                                         closeConnection(con1);
-                                        return JSON.stringify(res);
+                                        return callback(res);
                                     });
                                 };
                             });
