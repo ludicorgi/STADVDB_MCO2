@@ -75,6 +75,11 @@ button{
     display: inline-block;
 }
 
+.reportlabel{
+    width: 400px;
+    display: inline-block;
+}
+
 .w3-container .row input{
     width: 350px;
 }
