@@ -2,6 +2,7 @@ const db = require('../db_dummy/db_functions');
 const search = db.newSearch;
 const update = db.reallyNewUpdate;
 const insert = db.reallyNewInsert;
+const end = db.closeAllConnection;
 const controller = {
     getIndex: function(req, res) {
         res.render('index');
@@ -31,16 +32,20 @@ const controller = {
     },
 
     editMovie: function(req, res){
-        let data = {...req.body}
-        let old_data = data.old_data;
+        let data = req.body
         // name year rank genre director
-        // console.log(data);
-        // update()
+        console.log(data);
         update(data.name, data.year, data.rank, data.genre, data.director,
-                old_data[0], old_data[1], old_data[2], old_data[3], (result) => {
-                    
+                data.o_name, data.o_year, data.o_genre, data.o_director, (result) => {
+                    console.log(result);
+                    if(result) res.status(200).send(result);
+                    else res.status(500).send(false)
                 })
-        res.status(200).send(data);
+    },
+
+    endConnection: function(req, res){
+        end();
+        res.status(200);
     }
 };
 
