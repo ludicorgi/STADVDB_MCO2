@@ -1483,4 +1483,199 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
         }
     }
 }
+
+function insertIntoOneNode(con, table, name, year, rank, genre, director){
+
+}
+
+function recover(){
+
+    //TODO:check if servers are online before attempting recovery
+    //TODO:error handling
+
+    con1.query("LOCK TABLE recovery_log WRITE, final_movies_all WRITE", function (err1) {
+        con2.query("LOCK TABLE recovery_log WRITE, final_movies_pre1980 WRITE", function (err1) {
+            con3.query("LOCK TABLE recovery_log WRITE, final_movies_pre1980 WRITE", function (err1) {
+
+                //read con1 logs
+                con1.query("SELECT * from new_recovery_log;", values, function (err, results) {
+
+                    results.foreach(resultitem => {
+        
+                        var type = resultitem.type;
+                        var name = resultitem.name;
+                        var year = resultitem.year;
+                        var rank = resultitem.rank;
+                        var genre = resultitem.genre;
+                        var director = resultitem.director;
+        
+                        var old_name = resultitem.name;
+                        var old_year = resultitem.year;
+                        var old_genre = resultitem.genre;
+                        var old_director = resultitem.director;
+        
+                        if(resultitem.type == "INSERT" || resultitem.type == "UPDATE"){
+        
+                            if(resultitem.year < 1980){
+                                con2.query("SELECT * from new_recovery_log WHERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [name, year, rank, genre, director], function(err, results){
+                                    if(results.length == 0){ //search for corresponding log entry in other node, if not found perform query
+        
+                                        if(type == "INSERT"){
+                                            con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
+                                                con2.commit(function (err) {})
+                                            });
+        
+                                        }
+                                        else if(type == "UPDATE"){
+                                            con2.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
+                                                con2.commit(function (err) {})
+                                            });
+                                        }
+
+                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
+                                            con1.commit(function (err3) {})
+                                        }); //remove from log
+
+                                    }else{
+                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
+                                            con1.commit(function (err) {})
+                                        });
+
+                                        con2.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
+                                            con1.commit(function (err) {})
+                                        });
+                                    }
+                                })
+                            }
+                            else if(resultitem.year >= 1980){
+                                con3.query("SELECT * from new_recovery_log WHERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [name, year, rank, genre, director], function(err, results){
+                                    if(results.length == 0){
+        
+                                        if(type == "INSERT"){
+                                            con3.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
+                                                con3.commit(function (err) {})
+                                            });
+        
+                                        }
+                                        else if(type == "UPDATE"){
+                                            con3.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
+                                                con3.commit(function (err) {})
+                                            });
+                                        }
+
+                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
+                                            con1.commit(function (err3) {})
+                                        });
+
+                                    }else{
+                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
+                                            con1.commit(function (err) {})
+                                        });
+
+                                        con3.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
+                                            con3.commit(function (err) {})
+                                        });
+                                    }
+                                })
+                            }
+                        }
+                        else{
+                            con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;",function (err, result) {
+                                con1.commit(function (err) {})
+                            });
+                        }
+                    });
+                
+                })
+
+                //read con2 logs
+                con2.query("SELECT * from new_recovery_log;", values, function (err, results) {
+
+                    results.foreach(resultitem => {
+        
+                        var type = resultitem.type;
+                        var name = resultitem.name;
+                        var year = resultitem.year;
+                        var rank = resultitem.rank;
+                        var genre = resultitem.genre;
+                        var director = resultitem.director;
+        
+                        var old_name = resultitem.name;
+                        var old_year = resultitem.year;
+                        var old_genre = resultitem.genre;
+                        var old_director = resultitem.director;
+
+                        //remaining insert/update logs are entries that were
+                        //missed/were not present in Node 1 
+                        //no need to check for corresponding entry
+        
+                        if(type == "INSERT"){
+                            con1.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
+                                con1.commit(function (err) {})
+                            });
+                        }
+                        else if(type == "UPDATE"){
+                            con1.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
+                                con1.commit(function (err) {})
+                            });
+                        }
+
+                        con2.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;",function (err, result) {
+                            con2.commit(function (err) {})
+                        });
+                    });
+                })
+
+                //read con3 logs
+                con3.query("SELECT * from new_recovery_log;", values, function (err, results) {
+
+                    results.foreach(resultitem => {
+        
+                        var type = resultitem.type;
+                        var name = resultitem.name;
+                        var year = resultitem.year;
+                        var rank = resultitem.rank;
+                        var genre = resultitem.genre;
+                        var director = resultitem.director;
+        
+                        var old_name = resultitem.name;
+                        var old_year = resultitem.year;
+                        var old_genre = resultitem.genre;
+                        var old_director = resultitem.director;
+        
+                        if(type == "INSERT"){
+                            con1.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
+                                con1.commit(function (err) {})
+                            });
+                        }
+                        else if(type == "UPDATE"){
+                            con1.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
+                                con1.commit(function (err) {})
+                            });
+                        }
+
+                        con3.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;",function (err, result) {
+                            con3.commit(function (err) {})
+                        });
+                    });
+                })
+                
+                con1.query("UNLOCK TABLES", function (err3) {
+                    if (err) throw err;
+                    closeConnection(con1);
+                });
+
+                con2.query("UNLOCK TABLES", function (err3) {
+                    if (err) throw err;
+                    closeConnection(con2);
+                });
+
+                con3.query("UNLOCK TABLES", function (err3) {
+                    if (err) throw err;
+                    closeConnection(con3);
+                });
+            })
+        })
+    })
+}
 module.exports = { closeConnection, searchRecord, insertOneRecordIntoAllNodes };
