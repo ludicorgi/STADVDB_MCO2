@@ -95,7 +95,7 @@ function newSearch(field, value, callback) {
                                             });
                                         } else {
                                             // query was successful
-                                            con3.query("UNLOCK TABLES", (err) => {
+                                            con3.commit((err) => {
                                                 if (err) {
                                                     con3.rollback((err) => {
                                                         if (err) throw err;
@@ -103,7 +103,7 @@ function newSearch(field, value, callback) {
                                                     });
                                                 } else {
                                                     // unlocking was successful
-                                                    con3.commit((err) => {
+                                                    con3.query("UNLOCK TABLES", (err) => {
                                                         if (err) con3.rollback((err) => {
                                                             if (err) throw err;
                                                             closeConnection(con3);
@@ -138,7 +138,7 @@ function newSearch(field, value, callback) {
                                             });
                                         } else {
                                             // query successful
-                                            con2.query("UNLOCK TABLES", (err) => {
+                                            con2.commit((err) => {
                                                 if (err) {
                                                     con2.rollback((err) => {
                                                         if (err) throw err;
@@ -146,7 +146,7 @@ function newSearch(field, value, callback) {
                                                     });
                                                 } else {
                                                     // unlocking successful
-                                                    con2.commit((err) => {
+                                                    con2.query("UNLOCK TABLES", (err) => {
                                                         if (err) con2.rollback((err) => {
                                                             if (err) throw err;
                                                         });
@@ -180,7 +180,7 @@ function newSearch(field, value, callback) {
                                         });
                                     } else if (res.length > 0) {
                                         // result is in node
-                                        con2.query("UNLOCK TABLES", (err) => {
+                                        con2.commit((err) => {
                                             if (err) {
                                                 con2.rollback((err) => {
                                                     if (err) throw err;
@@ -188,7 +188,7 @@ function newSearch(field, value, callback) {
                                                 });
                                             } else {
                                                 // unlock successful
-                                                con2.commit((err) => {
+                                                con2.query("UNLOCK TABLES", (err) => {
                                                     if (err) con2.rollback((err) => {
                                                         if (err) throw err;
                                                     });
@@ -201,7 +201,10 @@ function newSearch(field, value, callback) {
                                         // not in this node
                                         con2.rollback((err) => {
                                             if (err) throw err;
-                                            closeConnection(con2);
+                                            con2.query("UNLOCK TABLES", (err) =>{
+                                                if (err) throw err;
+                                                closeConnection(con2);
+                                            })
                                         });
                                     };
                                 });
@@ -226,15 +229,14 @@ function newSearch(field, value, callback) {
                                         });
                                     } else if (res.length > 0) {
                                         // is in this node
-                                        con3.query("UNLOCK TABLES", (err) => {
+                                        con3.commit((err) => {
                                             if (err) {
                                                 con3.rollback((err) => {
                                                     if (err) throw err;
                                                     closeConnection(con3);
                                                 });
                                             } else {
-                                                // unlocking successful
-                                                con3.commit((err) => {
+                                                con3.query("UNLOCK TABLES", (err) => {
                                                     if (err) con3.rollback((err) => {
                                                         if (err) throw err;
                                                     });
@@ -246,8 +248,11 @@ function newSearch(field, value, callback) {
                                     } else {
                                         // not in this node
                                         con3.rollback((err) => {
+                                            con3.query("UNLOCK TABLES", (err) => {
+                                                if(err) throw err;
+                                                closeConnection(con3)
+                                            })
                                             if (err) throw err;
-                                            closeConnection(con3);
                                         });
                                     };
                                 });
@@ -273,7 +278,7 @@ function newSearch(field, value, callback) {
                             });
                         } else {
                             // query successful
-                            con1.query("UNLOCK TABLES", (err) => {
+                            con1.commit((err) => {
                                 if (err) {
                                     con1.rollback((err) => {
                                         if (err) throw err;
@@ -281,7 +286,7 @@ function newSearch(field, value, callback) {
                                     });
                                 } else {
                                     // unlock successful
-                                    con1.commit((err) => {
+                                    con1.query("UNLOCK TABLES", (err) => {
                                         if (err) throw err;
                                         // commit successful
                                         closeConnection(con1);
@@ -995,14 +1000,14 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                             throw err2;
                                                         });
                                                     }
-                                                    con2.query("UNLOCK TABLES", function (err2) {
+                                                    con2.commit(function (err2) {
                                                         if (err2) {
                                                             return con2.rollback(function () {
                                                                 throw err2;
                                                             });
                                                         }
 
-                                                        con2.commit(function (err2) {
+                                                        con2.query("UNLOCK TABLES", function (err2) {
                                                             if (err2) {
                                                                 return con2.rollback(function () {
                                                                     throw err2;
@@ -1062,15 +1067,14 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                             throw err3;
                                                         });
                                                     }
-
-                                                    con3.query("UNLOCK TABLES", function (err3) {
+                                                    con3.commit(function (err3) {
                                                         if (err3) {
                                                             return con3.rollback(function () {
                                                                 throw err3;
                                                             });
                                                         }
 
-                                                        con3.commit(function (err3) {
+                                                        con3.query("UNLOCK TABLES", function (err3) {
                                                             if (err3) {
                                                                 return con3.rollback(function () {
                                                                     throw err3;
@@ -1134,14 +1138,14 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                         throw err1;
                                     });
                                 }
-                                con1.query("UNLOCK TABLES", function (err1) {
+                                con1.commit(function (err1) {
                                     if (err1) {
                                         return con1.rollback(function () {
                                             throw err1;
                                         });
                                     }
 
-                                    con1.commit(function (err1) {
+                                    con1.query("UNLOCK TABLES", function (err1) {
                                         if (err1) {
                                             return con1.rollback(function () {
                                                 throw err1;
@@ -1194,14 +1198,13 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                             throw err3;
                                                         });
                                                     }
-                                                    con3.query("UNLOCK TABLES", function (err3) {
+                                                    con3.commit(function (err3) {
                                                         if (err3) {
                                                             return con3.rollback(function () {
                                                                 throw err3;
                                                             });
                                                         }
-
-                                                        con3.commit(function (err3) {
+                                                        con3.query("UNLOCK TABLES", function (err3) {
                                                             if (err3) {
                                                                 return con3.rollback(function () {
                                                                     throw err3;
@@ -1261,14 +1264,13 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                     });
                                                 }
 
-                                                con2.query("UNLOCK TABLES", function (err2) {
+                                                con2.commit(function (err2) {
                                                     if (err2) {
                                                         return con2.rollback(function () {
                                                             throw err2;
                                                         });
                                                     }
-
-                                                    con2.commit(function (err2) {
+                                                    con2.query("UNLOCK TABLES", function (err2) {
                                                         if (err2) {
                                                             return con2.rollback(function () {
                                                                 throw err2;
