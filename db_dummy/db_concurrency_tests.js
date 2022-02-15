@@ -11,6 +11,7 @@ const con3Clone2 = connections.con3Clone2;
 async function concurrencyTest1() {
     // all transactions are reading
     let t1res, t2res, fixedRes;
+    let t1res2, t2res2;
     console.log("Test 1");
     con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
         if (err) throw err
@@ -20,18 +21,25 @@ async function concurrencyTest1() {
         if (err) throw err
         con1.query("LOCK TABLES movies_all READ", (err) => {
             if (err) throw err
-            con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
+            con3.query("LOCK TABLES movies_post1980 READ", (err) => {
                 if (err) throw err
-                console.log("Transaction 1:");
-                // console.log(res);
-                t1res = JSON.stringify(res);
                 con1.query("DO SLEEP(2)", (err) => {
                     if (err) throw err
-                    con1.query("UNLOCK TABLES", (err) => {
+                    con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
                         if (err) throw err
-                        console.log("T1 Done");
-                        con1.commit((err) => {
+                        console.log("Transaction 1:");
+                        // console.log(res);
+                        t1res = JSON.stringify(res);
+                        con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
                             if (err) throw err
+                            t1res2 = JSON.stringify(res)
+                            con1.query("UNLOCK TABLES", (err) => {
+                                if (err) throw err
+                                console.log("T1 Done");
+                                con1.commit((err) => {
+                                    if (err) throw err
+                                })
+                            })
                         })
                     })
                 })
@@ -44,16 +52,23 @@ async function concurrencyTest1() {
         if (err) throw err
         con1Clone.query("LOCK TABLES movies_all READ", (err) => {
             if (err) throw err
-            con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
+            con3.query("LOCK TABLES movies_post1980 READ", (err) => {
                 if (err) throw err
-                console.log("Transaction 2:")
-                // console.log(res[0].rank);
-                t2res = JSON.stringify(res);
-                con1Clone.query("UNLOCK TABLES", (err) => {
+                con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
                     if (err) throw err
-                    console.log("T2 Done");
-                    con1Clone.commit((err) => {
+                    console.log("Transaction 2:")
+                    // console.log(res[0].rank);
+                    t2res = JSON.stringify(res);
+                    con3Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
                         if (err) throw err
+                        t2res2 = JSON.stringify(res);
+                        con1Clone.query("UNLOCK TABLES", (err) => {
+                            if (err) throw err
+                            console.log("T2 Done");
+                            con1Clone.commit((err) => {
+                                if (err) throw err
+                            })
+                        })
                     })
                 })
             })
@@ -62,7 +77,7 @@ async function concurrencyTest1() {
 
 
     await sleep(2000);
-    if (t1res == fixedRes && t2res == fixedRes) {
+    if (t1res == fixedRes && t2res == fixedRes && t1res2 == t1res && t2res2 == t1res2) {
         console.log("Pass");
     } else console.log("Fail");
     // console.log(t1res);
@@ -158,23 +173,23 @@ async function concurrencyTest2(option) {
     con1.query('SELECT @@transaction_ISOLATION;', (err, res) => {
         console.log(res);
     })
-    // await sleep(8000);
+    await sleep(8000);
     // T2 should be updated
-    // if (t2res == rank) {
-    //     console.log("T2 " + t2res + ":" + rank);
-    //     console.log('T2 pass');
-    // } else {
-    //     console.log("T2 " + t2res + ":" + rank);
-    //     console.log('T2 fail');
-    // }
+    if (t2res == rank) {
+        console.log("T2 " + t2res + ":" + rank);
+        console.log('T2 pass');
+    } else {
+        console.log("T2 " + t2res + ":" + rank);
+        console.log('T2 fail');
+    }
 
-    // if (t3res == rank) {
-    //     console.log("T3 " + t3res + ":" + rank);
-    //     console.log('T3 pass');
-    // } else {
-    //     console.log("T3 " + t3res + ":" + rank);
-    //     console.log('T3 fail');
-    // }
+    if (t3res == rank) {
+        console.log("T3 " + t3res + ":" + rank);
+        console.log('T3 pass');
+    } else {
+        console.log("T3 " + t3res + ":" + rank);
+        console.log('T3 fail');
+    }
 
     await sleep(5000);
     con3.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
@@ -320,10 +335,10 @@ async function runAllTests() {
         else if (i == 3) db.setAllIsolationLevel('serializable');
         await sleep(5000);
         await concurrencyTest1();
-        console.log("----");
-        await concurrencyTest2(i);
-        console.log("----");
-        await concurrencyTest3(i);
+        // console.log("----");
+        // await concurrencyTest2(i);
+        // console.log("----");
+        // await concurrencyTest3(i);
     }
 
 }
