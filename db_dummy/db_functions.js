@@ -302,6 +302,39 @@ function newSearch(field, value, callback) {
     });
 };
 
+function generateAllReports(genre, year, director, callback){
+    var answers = [];
+    // Total Number of Movies
+    con1.query("SELECT COUNT(*) FROM final_movies_all;", function(err, result){
+        if(err){
+            throw err;
+        }
+
+        answers.push(result[0]['COUNT(*)']);
+
+        // Number of [GENRE] Movies in [YEAR]
+        con1.query("SELECT COUNT(*) FROM final_movies_all WHERE genre=? AND year=?;", [genre, year], function(err, result){
+            if(err){
+                throw err;
+            }
+    
+            answers.push(result[0]['COUNT(*)']);
+
+            // Number of [GENRE] Movies in [YEAR] by [DIRECTOR]
+            con1.query("SELECT COUNT(*) FROM final_movies_all WHERE genre=? AND year=? AND director=?;", [genre, year, director], function(err, result){
+                if(err){
+                    throw err;
+                }
+
+                closeConnection(con1);
+                answers.push(result[0]['COUNT(*)']);
+                // console.log(answers);
+                return callback(answers);
+            });
+        });
+    });
+}
+
 function insertOneRecordIntoAllNodes(name, year, rank, genre, director) {
     values = [name, year, rank, genre, director];
 
