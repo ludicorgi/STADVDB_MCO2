@@ -470,14 +470,13 @@ function reallyNewInsert(name, year, rank, genre, director) {
                                 });
                             }
 
-                            con1.query("UNLOCK TABLES", function (err1) {
+                            con1.commit(function (err1) {
                                 if (err1) {
                                     return con1.rollback(function () {
                                         throw err1;
                                     });
                                 }
-
-                                con1.commit(function (err1) {
+                                con1.query("UNLOCK TABLES", function (err1) {
                                     if (err1) {
                                         return con1.rollback(function () {
                                             throw err1;
@@ -536,14 +535,13 @@ function reallyNewInsert(name, year, rank, genre, director) {
                                     });
                                 }
 
-                                con2.query("UNLOCK TABLES", function (err2) {
+                                con2.commit(function (err2) {
                                     if (err2) {
                                         return con2.rollback(function () {
                                             throw err2;
                                         });
                                     }
-
-                                    con2.commit(function (err2) {
+                                    con2.query("UNLOCK TABLES", function (err2) {
                                         if (err2) {
                                             return con2.rollback(function () {
                                                 throw err2;
@@ -605,14 +603,13 @@ function reallyNewInsert(name, year, rank, genre, director) {
                                     });
                                 }
 
-                                con3.query("UNLOCK TABLES", function (err3) {
+                                con3.commit(function (err3) {
                                     if (err3) {
                                         return con3.rollback(function () {
                                             throw err3;
                                         });
                                     }
-
-                                    con3.commit(function (err3) {
+                                    con3.query("UNLOCK TABLES", function (err3) {
                                         if (err3) {
                                             return con3.rollback(function () {
                                                 throw err3;
@@ -1334,14 +1331,13 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                         throw err1;
                                     });
                                 }
-                                con1.query("UNLOCK TABLES", function (err1) {
+                                con1.commit(function (err1) {
                                     if (err1) {
                                         return con1.rollback(function () {
                                             throw err1;
                                         });
                                     }
-
-                                    con1.commit(function (err1) {
+                                    con1.query("UNLOCK TABLES", function (err1) {
                                         if (err1) {
                                             return con1.rollback(function () {
                                                 throw err1;
@@ -1399,15 +1395,13 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                             throw err2;
                                         });
                                     }
-
-                                    con2.query("UNLOCK TABLES", function (err2) {
+                                    con2.commit(function (err2) {
                                         if (err2) {
                                             return con2.rollback(function () {
                                                 throw err2;
                                             });
                                         }
-
-                                        con2.commit(function (err2) {
+                                        con2.query("UNLOCK TABLES", function (err2) {
                                             if (err2) {
                                                 return con2.rollback(function () {
                                                     throw err2;
@@ -1465,13 +1459,13 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                             throw err3;
                                         });
                                     }
-                                    con3.query("UNLOCK TABLES", function (err3) {
+                                    con3.commit(function (err3) {
                                         if (err3) {
                                             return con3.rollback(function () {
                                                 throw err3;
                                             });
                                         }
-                                        con3.commit(function (err3) {
+                                        con3.query("UNLOCK TABLES", function (err3) {
                                             if (err3) {
                                                 return con3.rollback(function () {
                                                     throw err3;
