@@ -51,6 +51,8 @@ btn_modal_add.onclick = function() {
     // console.log(data);
     $.post('/add_movie', data, function(res){
         // idk prob show alert or something
+        if(res) alert("Movie added")
+        else alert("Movie addition failed")
         console.log(res);
     });
 }
@@ -90,15 +92,18 @@ span_edit.onclick = function() {
 btn_modal_update.onclick = function(){
     let data = {
         name: edit_name.value,
-        year: edit_director.value,
+        year: edit_year.value,
         rank: edit_rank.value,
         genre: edit_genre.value,
         director: edit_director.value,
-        old_data : old_values,
+        o_name : old_values[0],
+        o_year : old_values[1],
+        o_genre : old_values[2],
+        o_director : old_values[3],
     };
-    console.log(data);
     $.post('edit_movie', data, function(res){
-        console.log(res);
+        if(res) alert("Movie Updated")
+        else alert("Movie Update Failed")
     });
 }
 
@@ -111,7 +116,7 @@ btn_search.onclick = function(){
     $.get('/search_movie', data, function(res){
         // show results
         // console.log(res[0]);
-        
+        $('#results_tbl > tbody:last-child').html('');
         for(let movie of res){
             // console.log(movie);
             $('#results_tbl > tbody:last-child').append(`
@@ -128,3 +133,9 @@ btn_search.onclick = function(){
     });
 }
 
+window.onbeforeunload = function (){
+    console.log("a");
+    $.get('/end_connections', function(res){
+        alert("DB Killed");
+    })
+}

@@ -14,6 +14,9 @@ app.post('/add_movie', controller.addMovie);
 // Edit Movie
 app.post('/edit_movie', controller.editMovie);
 
+// End Connection
+app.get('/end_connections', controller.endConnection);
+
 
 
 module.exports = app;

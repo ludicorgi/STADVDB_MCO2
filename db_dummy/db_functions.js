@@ -1,10 +1,10 @@
 // import {con2, con3} from "./db_connections";
 // import {con1} from "./dblocal_conn.js";
 const connections = require('./db_connections');
-const con1 = connections.con1;
-const con2 = connections.con2;
-const con3 = connections.con3
-
+let con1, con2 , con3;
+con1 = connections.createConnectionNode1();
+con2 = connections.createConnectionNode2();
+con3 = connections.createConnectionNode3();
 // const con1 = require('./dblocal_conn');
 const mysql = require('mysql')
 const lostConn = 'PROTOCOL_CONNECTION_LOST';
@@ -16,7 +16,7 @@ const insertLogWithId = "INSERT INTO new_recovery_log (transaction_id, type, nam
 function closeConnection(con) {
     con.end(function (err) {
         if (err) throw err;
-        console.log("Closed connection");
+        console.log("Closed connection " + con.config.database);
     });
 }
 
@@ -27,7 +27,9 @@ function newSearch(field, value, callback) {
     let queryNode3 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE ?? = ?;";
 
     let values = [(field), (value)];
-
+    // con1 = connections.createConnectionNode1();
+    // con2 = connections.createConnectionNode2();
+    // con3 = connections.createConnectionNode3();
     // search node 1
     con1.query("SET autocommit = 0", function (err1) {
         if (err1) {
@@ -47,7 +49,7 @@ function newSearch(field, value, callback) {
                                         if (err) {
                                             con3.rollback((err) => {
                                                 if (err) throw err;
-                                                closeConnection(con3);
+                                                //closeconnection(con3);
                                             });
                                         } else {
                                             // query was successful
@@ -55,17 +57,17 @@ function newSearch(field, value, callback) {
                                                 if (err) {
                                                     con3.rollback((err) => {
                                                         if (err) throw err;
-                                                        closeConnection(con3);
+                                                        //closeconnection(con3);
                                                     });
                                                 } else {
                                                     // unlocking was successful
                                                     con3.query("UNLOCK TABLES", (err) => {
                                                         if (err) con3.rollback((err) => {
                                                             if (err) throw err;
-                                                            closeConnection(con3);
+                                                            //closeconnection(con3);
                                                         });
                                                         // commit was successful
-                                                        closeConnection(con3);
+                                                        //closeconnection(con3);
                                                         return callback(res);
                                                     });
                                                 };
@@ -90,7 +92,7 @@ function newSearch(field, value, callback) {
                                         if (err) {
                                             con2.rollback((err) => {
                                                 if (err) throw err;
-                                                closeConnection(con2);
+                                                //closeconnection(con2);
                                             });
                                         } else {
                                             // query successful
@@ -98,7 +100,7 @@ function newSearch(field, value, callback) {
                                                 if (err) {
                                                     con2.rollback((err) => {
                                                         if (err) throw err;
-                                                        closeConnection(con2);
+                                                        //closeconnection(con2);
                                                     });
                                                 } else {
                                                     // unlocking successful
@@ -106,7 +108,7 @@ function newSearch(field, value, callback) {
                                                         if (err) con2.rollback((err) => {
                                                             if (err) throw err;
                                                         });
-                                                        closeConnection(con2);
+                                                        //closeconnection(con2);
                                                         return callback(res);
                                                     });
                                                 };
@@ -132,7 +134,7 @@ function newSearch(field, value, callback) {
                                     if (err) {
                                         con2.rollback((err) => {
                                             if (err) throw err;
-                                            closeConnection(con2);
+                                            //closeconnection(con2);
                                         });
                                     } else if (res.length > 0) {
                                         // result is in node
@@ -140,7 +142,7 @@ function newSearch(field, value, callback) {
                                             if (err) {
                                                 con2.rollback((err) => {
                                                     if (err) throw err;
-                                                    closeConnection(con2);
+                                                    //closeconnection(con2);
                                                 });
                                             } else {
                                                 // unlock successful
@@ -148,7 +150,7 @@ function newSearch(field, value, callback) {
                                                     if (err) con2.rollback((err) => {
                                                         if (err) throw err;
                                                     });
-                                                    closeConnection(con2)
+                                                    //closeconnection(con2)
                                                     return callback(res);
                                                 });
                                             };
@@ -159,7 +161,7 @@ function newSearch(field, value, callback) {
                                             if (err) throw err;
                                             con2.query("UNLOCK TABLES", (err) =>{
                                                 if (err) throw err;
-                                                closeConnection(con2);
+                                                //closeconnection(con2);
                                             })
                                         });
                                     };
@@ -181,7 +183,7 @@ function newSearch(field, value, callback) {
                                     if (err) {
                                         con3.rollback((err) => {
                                             if (err) throw err;
-                                            closeConnection(con3);
+                                            //closeconnection(con3);
                                         });
                                     } else if (res.length > 0) {
                                         // is in this node
@@ -189,14 +191,14 @@ function newSearch(field, value, callback) {
                                             if (err) {
                                                 con3.rollback((err) => {
                                                     if (err) throw err;
-                                                    closeConnection(con3);
+                                                    //closeconnection(con3);
                                                 });
                                             } else {
                                                 con3.query("UNLOCK TABLES", (err) => {
                                                     if (err) con3.rollback((err) => {
                                                         if (err) throw err;
                                                     });
-                                                    closeConnection(con3);
+                                                    //closeconnection(con3);
                                                     return callback(res);
                                                 });
                                             };
@@ -206,7 +208,7 @@ function newSearch(field, value, callback) {
                                         con3.rollback((err) => {
                                             con3.query("UNLOCK TABLES", (err) => {
                                                 if(err) throw err;
-                                                closeConnection(con3)
+                                                //closeconnection(con3)
                                             })
                                             if (err) throw err;
                                         });
@@ -222,7 +224,7 @@ function newSearch(field, value, callback) {
                 if (err) {
                     con1.rollback((err) => {
                         if (err) throw err;
-                        closeConnection(con1);
+                        //closeconnection(con1);
                     });
                 } else {
                     // locking successful
@@ -230,7 +232,7 @@ function newSearch(field, value, callback) {
                         if (err) {
                             con1.rollback((err) => {
                                 if (err) throw err;
-                                closeConnection(con1);
+                                //closeconnection(con1);
                             });
                         } else {
                             // query successful
@@ -238,14 +240,14 @@ function newSearch(field, value, callback) {
                                 if (err) {
                                     con1.rollback((err) => {
                                         if (err) throw err;
-                                        closeConnection(con1);
+                                        //closeconnection(con1);
                                     });
                                 } else {
                                     // unlock successful
                                     con1.query("UNLOCK TABLES", (err) => {
                                         if (err) throw err;
                                         // commit successful
-                                        closeConnection(con1);
+                                        //closeconnection(con1);
                                         return callback(res);
                                     });
                                 };
@@ -260,6 +262,10 @@ function newSearch(field, value, callback) {
 
 function generateAllReports(genre, year, director, callback){
     var answers = [];
+    // con1 = connections.createConnectionNode1();
+    // con2 = connections.createConnectionNode2();
+    // con3 = connections.createConnectionNode3();
+
     // Total Number of Movies
     con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all;", function(err, result){
         if(err){
@@ -282,7 +288,7 @@ function generateAllReports(genre, year, director, callback){
                     throw err;
                 }
 
-                closeConnection(con1);
+                //closeconnection(con1);
                 answers.push(result[0]['COUNT(DISTINCT name, year)']);
                 return callback(answers);
             });
@@ -292,7 +298,10 @@ function generateAllReports(genre, year, director, callback){
 
 
 function reallyNewInsert(name, year, rank, genre, director, callback) {
-    let node1Sucess = false, node2Success = false, node3Success = false;
+    let hasCalledback = false;
+    // con1 = connections.createConnectionNode1();
+    // con2 = connections.createConnectionNode2();
+    // con3 = connections.createConnectionNode3();
     con1.query("SET autocommit = 0", function (err1) {
         con1.query("LOCK TABLES new_recovery_log WRITE, final_movies_all WRITE", function (err1) {
             if (err1) {
@@ -348,8 +357,11 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
                                             throw err1;
                                         });
                                     }
-                                    node1Success = true;
-                                    closeConnection(con1);
+                                    if(!hasCalledback){
+                                        callback(true);
+                                        hasCalledback = true;
+                                    } 
+                                    //closeconnection(con1);
                                 });
                             });
                         });
@@ -414,8 +426,11 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
                                                 throw err2;
                                             });
                                         }
-                                        node2Success = true;
-                                        closeConnection(con2);
+                                        if(!hasCalledback){
+                                            callback(true)
+                                            hasCalledback = true;
+                                        }
+                                        //closeconnection(con2);
                                     });
                                 });
                             });
@@ -483,8 +498,11 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
                                                 throw err3;
                                             });
                                         }
-                                        node3Success = true;
-                                        closeConnection(con3);
+                                        if(!hasCalledback){
+                                            callback(true)
+                                            hasCalledback = true;
+                                        }
+                                        //closeconnection(con3);
                                     });
                                 });
                             });
@@ -494,9 +512,6 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
             });
         });
     }
-    if(node1Sucess && (node3Success || node2Success)){
-        callback(true);
-    }
 }
 
 function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, old_genre, old_director, callback) {
@@ -505,6 +520,10 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
     var oldYearIsPost1980 = old_year >= 1980;
     var newYearIsPost1980 = year >= 1980;
     var hasCalledback = false;
+    // con1 = connections.createConnectionNode1();
+    // con2 = connections.createConnectionNode2();
+    // con3 = connections.createConnectionNode3();
+
     if (oldYearIsPost1980 && !newYearIsPost1980) {
         con1.query("SET autocommit = 0", function (err1) {
             if (err1) {
@@ -562,7 +581,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                             });
                                         }
                                         callback(true);
-                                        closeConnection(con1);
+                                        //closeconnection(con1);
                                     });
                                 });
                             });
@@ -622,7 +641,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                                 });
                                                             }
                                                             callback(true);
-                                                            closeConnection(con2);
+                                                            //closeconnection(con2);
                                                         });
                                                     });
                                                 });
@@ -690,7 +709,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                                 });
                                                             }
                                                             callback(true);
-                                                            closeConnection(con3);
+                                                            //closeconnection(con3);
                                                         });
                                                     })
                                                 });
@@ -765,7 +784,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                             callback(true);
                                             hasCalledback = true
                                         } 
-                                        closeConnection(con1);
+                                        //closeconnection(con1);
                                     });
                                 });
                             });
@@ -828,7 +847,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                                 callback(true);
                                                                 hasCalledback = true
                                                             } 
-                                                            closeConnection(con3);
+                                                            //closeconnection(con3);
                                                         })
                                                     });
                                                 });
@@ -898,7 +917,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                             callback(true);
                                                             hasCalledback = true
                                                         } 
-                                                        closeConnection(con2);
+                                                        //closeconnection(con2);
                                                     })
                                                 });
                                             });
@@ -971,7 +990,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                             callback(true);
                                             hasCalledback = true
                                         } 
-                                        // closeConnection(con1);
+                                        //closeconnection(con1);
                                     });
                                 });
                             });
@@ -1039,7 +1058,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                 callback(true);
                                                 hasCalledback = true
                                             } 
-                                            // closeConnection(con2);
+                                            //closeconnection(con2);
                                         });
                                     });
                                 });
@@ -1107,7 +1126,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                 callback(true);
                                                 hasCalledback = true
                                             } 
-                                            // closeConnection(con3);
+                                            //closeconnection(con3);
                                         })
                                     })
                                 });
@@ -1124,6 +1143,10 @@ function recover(){
 
     //TODO:check if servers are online before attempting recovery
     //TODO:error handling
+
+    // con1 = connections.createConnectionNode1();
+    // con2 = connections.createConnectionNode2();
+    // con3 = connections.createConnectionNode3();
 
     con1.query("LOCK TABLE recovery_log WRITE, final_movies_all WRITE", function (err1) {
         con2.query("LOCK TABLE recovery_log WRITE, final_movies_pre1980 WRITE", function (err1) {
@@ -1294,21 +1317,36 @@ function recover(){
                 
                 con1.query("UNLOCK TABLES", function (err3) {
                     if (err) throw err;
-                    closeConnection(con1);
+                    //closeconnection(con1);
                 });
 
                 con2.query("UNLOCK TABLES", function (err3) {
                     if (err) throw err;
-                    closeConnection(con2);
+                    //closeconnection(con2);
                 });
 
                 con3.query("UNLOCK TABLES", function (err3) {
                     if (err) throw err;
-                    closeConnection(con3);
+                    //closeconnection(con3);
                 });
             })
         })
     })
 }
-module.exports = { newSearch, reallyNewUpdate, reallyNewInsert };
+
+function closeAllConnection(){
+    con1.end(function (err) {
+        if (err) throw err;
+        console.log("Closed connection " + 1);
+    });
+    con2.end(function (err) {
+        if (err) throw err;
+        console.log("Closed connection " + 2);
+    });
+    con3.end(function (err) {
+        if (err) throw err;
+        console.log("Closed connection " + 3);
+    });
+}
+module.exports = { newSearch, reallyNewUpdate, reallyNewInsert, closeAllConnection };
 // module.exports = { closeConnection, searchRecord, insertOneRecordIntoAllNodes };
