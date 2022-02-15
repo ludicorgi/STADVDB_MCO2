@@ -1348,5 +1348,5 @@ function closeAllConnection(){
         console.log("Closed connection " + 3);
     });
 }
-module.exports = { newSearch, reallyNewUpdate, reallyNewInsert, closeAllConnection };
+module.exports = { newSearch, reallyNewUpdate, reallyNewInsert, closeAllConnection, generateAllReports };
 // module.exports = { closeConnection, searchRecord, insertOneRecordIntoAllNodes };

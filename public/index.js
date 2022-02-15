@@ -58,7 +58,46 @@ btn_modal_add.onclick = function() {
 }
 
 btn_report.onclick = function() {
-    document.getElementById('modal_report').style.display='block';
+    let modal = document.getElementById('modal_report');
+    r_genre = $('#rep_genre').val();
+    r_year = $('#rep_year').val();
+    r_director = $('#rep_director').val();
+    const data = {
+        genre : r_genre,
+        year : r_year,
+        director : r_director,
+    }
+    console.log(data);
+    // $.get('generate_reports', data, (results)=>{
+        
+    // });
+
+    $.ajax({
+        type: "GET",
+        url: "generate_reports",
+        data: data,
+        beforeSend: function(){
+            alert("Loading . . .");
+        },
+        success: function (results) {
+            if(results){
+                console.log(results);
+                num_movies = results[0];
+                genre_in_year = results[1];
+                genre_in_year_by_director = results[2];
+    
+                $('#report_res1').html(num_movies);
+                $('#report_res2').html(genre_in_year);
+                $('#report_res3').html(genre_in_year_by_director);
+    
+                $('#report_lab2').html(`Number of ${r_genre} Movies in ${r_year}`);
+                $('#report_lab3').html(`Number of ${r_genre} Movies in ${r_year} by ${r_director}`);
+                modal.style.display='block';
+            }else{
+                alert("Loading...")
+            }
+        }
+    });
 }
 
 span_report.onclick = function() {

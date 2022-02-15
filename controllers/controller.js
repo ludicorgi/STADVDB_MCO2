@@ -3,6 +3,8 @@ const search = db.newSearch;
 const update = db.reallyNewUpdate;
 const insert = db.reallyNewInsert;
 const end = db.closeAllConnection;
+const reports = db.generateAllReports;
+
 const controller = {
     getIndex: function(req, res) {
         res.render('index');
@@ -46,6 +48,15 @@ const controller = {
     endConnection: function(req, res){
         end();
         res.status(200);
+    },
+
+    generateReports: function(req, res){
+        let data = req.query
+        reports(data.genre, data.year, data.director, (results)=> {
+            console.log(results);
+            if(results) res.status(200).send(results)
+            else res.status(500).send([0,0,0])
+        })
     }
 };
 

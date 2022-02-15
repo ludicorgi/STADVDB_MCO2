@@ -22,11 +22,11 @@
                 <span style="border-left: 3px solid black; margin-right: 3px; margin-left: 3px;"></span>
                 <button id="btn_modal_report">Generate Report</button>
                 <div style="flex:2">
-                    <input style="width: 100%; margin:3px;" placeholder="Enter Genre" type="text"></div>
+                    <input id="rep_genre" style="width: 100%; margin:3px;" placeholder="Enter Genre" type="text"></div>
                 <div style="flex:1">
-                    <input style="width: 100%; margin:3px;" placeholder="Enter Year" type="text"></div>
+                    <input id="rep_year" style="width: 100%; margin:3px;" placeholder="Enter Year" type="text"></div>
                 <div style="flex:2">
-                    <input style="width: 100%; margin:3px;" placeholder="Enter Director" type="text"></div>
+                    <input id="rep_director" style="width: 100%; margin:3px;" placeholder="Enter Director" type="text"></div>
             </div>
 
             <hr class="solid" style="margin-top: 5px;margin-bottom: 3px;border-color: #b9b9b9;">
@@ -38,7 +38,7 @@
                 <select id="search_field" style="margin:3px;">
                     <option value="name">Movie Name</option>
                     <option value="director">Director</option>
-                    <option value="year">Year</option>
+                    <!-- <option value="year">Year</option> -->
                     <option value="rank">Rank</option>
                     <option value="genre">Genre</option>
                 </select>
@@ -108,12 +108,12 @@
                 <h2 style="margin-bottom: 15px;">Data Report</h2>
             </header>
             <div class="w3-container">
-                <div class="row"><span class="reportlabel">Total Number of Movies</span>
-                    <span>[RESULT]</span></div>
-                <div class="row"><span class="reportlabel">Number of [GENRE] Movies in [YEAR]</span>
-                    <span>[RESULT]</span></div>
-                <div class="row"><span class="reportlabel">Number of [GENRE] Movies in [YEAR] by [DIRECTOR]</span>
-                    <span>[RESULT]</span></div>
+                <div class="row"><span class="reportlabel" id="report_lab1">Total Number of Movies</span>
+                    <span id="report_res1">[RESULT]</span></div>
+                <div class="row"><span class="reportlabel" id="report_lab2">Number of [GENRE] Movies in [YEAR]</span>
+                    <span id="report_res2">[RESULT]</span></div>
+                <div class="row"><span class="reportlabel" id="report_lab3">Number of [GENRE] Movies in [YEAR] by [DIRECTOR]</span>
+                    <span id="report_res3">[RESULT]</span></div>
             </div>
         </div>
     </div>
