@@ -22,9 +22,9 @@ function closeConnection(con) {
 
 
 function newSearch(field, value, callback) {
-    let queryNode1 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE ?? = ?;";
-    let queryNode2 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_pre1980 WHERE ?? = ?;";
-    let queryNode3 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE ?? = ?;";
+    let queryNode1 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM final_movies_all WHERE ?? = ?;";
+    let queryNode2 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM final_movies_pre1980 WHERE ?? = ?;";
+    let queryNode3 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM final_movies_post1980 WHERE ?? = ?;";
 
     let values = [(field), (value)];
     // con1 = connections.createConnectionNode1();
@@ -41,7 +41,7 @@ function newSearch(field, value, callback) {
                         if (err) throw err;
                         else {
                             // transaction began
-                            con3.query("LOCK TABLES movies_post1980 READ", (err) => {
+                            con3.query("LOCK TABLES final_movies_post1980 READ", (err) => {
                                 if (err) throw err;
                                 else {
                                     // locking was successful
@@ -84,7 +84,7 @@ function newSearch(field, value, callback) {
                         if (err2) throw err2;
                         else {
                             // transaction began
-                            con2.query("LOCK TABLES movies_pre1980 READ", (err) => {
+                            con2.query("LOCK TABLES final_movies_pre1980 READ", (err) => {
                                 if (err) throw err;
                                 else {
                                     // locking successful
@@ -126,7 +126,7 @@ function newSearch(field, value, callback) {
                     if (err2) throw err2;
                     else {
                         // transaction began
-                        con2.query("LOCK TABLES movies_pre1980 READ", (err) => {
+                        con2.query("LOCK TABLES final_movies_pre1980 READ", (err) => {
                             if (err) throw err;
                             else {
                                 // locking successful
@@ -175,7 +175,7 @@ function newSearch(field, value, callback) {
                     if (err3) throw err;
                     else {
                         // transaction began
-                        con3.query("LOCK TABLES movies_post1980 READ", (err) => {
+                        con3.query("LOCK TABLES final_movies_post1980 READ", (err) => {
                             if (err) throw err;
                             else {
                                 // locking succesful
@@ -220,7 +220,7 @@ function newSearch(field, value, callback) {
                 });
             }
         } else {
-            con1.query("LOCK TABLES movies_all READ", (err) => {
+            con1.query("LOCK TABLES final_movies_all READ", (err) => {
                 if (err) {
                     con1.rollback((err) => {
                         if (err) throw err;
@@ -248,6 +248,7 @@ function newSearch(field, value, callback) {
                                         if (err) throw err;
                                         // commit successful
                                         //closeconnection(con1);
+                                        console.log(res);
                                         return callback(res);
                                     });
                                 };
@@ -267,7 +268,7 @@ function generateAllReports(genre, year, director, callback){
     // con3 = connections.createConnectionNode3();
 
     // Total Number of Movies
-    con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all;", function(err, result){
+    con1.query("SELECT COUNT(DISTINCT name, year) FROM final_final_movies_all;", function(err, result){
         if(err){
             throw err;
         }
