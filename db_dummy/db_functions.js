@@ -1,12 +1,12 @@
 // import {con2, con3} from "./db_connections";
 // import {con1} from "./dblocal_conn.js";
 const connections = require('./db_connections');
-let con1, con2 , con3;
+let con1, con2, con3;
 con1 = connections.createConnectionNode1();
 con2 = connections.createConnectionNode2();
 con3 = connections.createConnectionNode3();
 // const con1 = require('./dblocal_conn');
-const mysql = require('mysql')
+const mysql = require('mysql');
 const lostConn = 'PROTOCOL_CONNECTION_LOST';
 
 const startLogNoId = "INSERT INTO new_recovery_log (type, name, year, `rank`, genre, director, old_name, old_year, old_genre, old_director) VALUES (?,?,?,?,?,?,?,?,?,?);";
@@ -22,9 +22,9 @@ function closeConnection(con) {
 
 
 function newSearch(field, value, callback) {
-    let queryNode1 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM final_movies_all WHERE ?? = ?;";
-    let queryNode2 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM final_movies_pre1980 WHERE ?? = ?;";
-    let queryNode3 = "SELECT `id`, `name`, `year`, `rank`, genre, director FROM final_movies_post1980 WHERE ?? = ?;";
+    let queryNode1 = "SELECT `name`, `year`, `rank`, genre, director FROM final_movies_all WHERE ?? = ?;";
+    let queryNode2 = "SELECT `name`, `year`, `rank`, genre, director FROM final_movies_pre1980 WHERE ?? = ?;";
+    let queryNode3 = "SELECT `name`, `year`, `rank`, genre, director FROM final_movies_post1980 WHERE ?? = ?;";
 
     let values = [(field), (value)];
     // con1 = connections.createConnectionNode1();
@@ -159,7 +159,7 @@ function newSearch(field, value, callback) {
                                         // not in this node
                                         con2.rollback((err) => {
                                             if (err) throw err;
-                                            con2.query("UNLOCK TABLES", (err) =>{
+                                            con2.query("UNLOCK TABLES", (err) => {
                                                 if (err) throw err;
                                                 //closeconnection(con2);
                                             })
@@ -207,7 +207,7 @@ function newSearch(field, value, callback) {
                                         // not in this node
                                         con3.rollback((err) => {
                                             con3.query("UNLOCK TABLES", (err) => {
-                                                if(err) throw err;
+                                                if (err) throw err;
                                                 //closeconnection(con3)
                                             })
                                             if (err) throw err;
@@ -261,39 +261,132 @@ function newSearch(field, value, callback) {
     });
 };
 
-function generateAllReports(genre, year, director, callback){
+function generateAllReports(genre, year, director, callback) {
     var answers = [];
     // con1 = connections.createConnectionNode1();
     // con2 = connections.createConnectionNode2();
     // con3 = connections.createConnectionNode3();
 
     // Total Number of Movies
-    con1.query("SELECT COUNT(DISTINCT name, year) FROM final_final_movies_all;", function(err, result){
-        if(err){
-            throw err;
-        }
-
-        answers.push(result[0]['COUNT(DISTINCT name, year)']);
-
-        // Number of [GENRE] Movies in [YEAR]
-        con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all WHERE genre=? AND year=?;", [genre, year], function(err, result){
-            if(err){
-                throw err;
-            }
+    con1.query("SET autocommit = 0", function (err) {
+        if (err) {
+            if(year < 1980){ // node 2
+                console.log("here");
+                con2.query("LOCK TABLES final_movies_pre1980 READ", function (err) {
+                    if (err) throw err;
     
-            answers.push(result[0]['COUNT(DISTINCT name, year)']);
+                    con2.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_pre1980;", function (err, result) {
+                        if (err) {
+                            throw err;
+                        }
+    
+                        answers.push(result[0]['COUNT(DISTINCT name, year)']);
+    
+                        // Number of [GENRE] Movies in [YEAR]
+                        con2.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_pre1980 WHERE genre=? AND year=?;", [genre, year], function (err, result) {
+                            if (err) {
+                                throw err;
+                            }
+    
+                            answers.push(result[0]['COUNT(DISTINCT name, year)']);
+    
+                            // Number of [GENRE] Movies in [YEAR] by [DIRECTOR]
+                            con2.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_pre1980 WHERE genre=? AND year=? AND director=?;", [genre, year, director], function (err, result) {
+                                if (err) {
+                                    throw err;
+                                }
+                                    con3.commit((err)=> {
+                                        if (err) throw err
+                                        //closeconnection(con3);
+                                        con3.query("UNLOCK TABLES", (err)=> {
+                                            if (err) throw err
+                                            answers.push(result[0]['COUNT(DISTINCT name, year)']);
+                                            return callback(answers);
+                                        })
+                                    })
+    
+                            });
+                        });
+                    });
+                });   
+            }else{ //node 3
+                con3.query("LOCK TABLES final_movies_post1980 READ", function (err) {
+                    if (err) throw err;
+    
+                    con3.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_post1980;", function (err, result) {
+                        if (err) {
+                            throw err;
+                        }
+    
+                        answers.push(result[0]['COUNT(DISTINCT name, year)']);
+    
+                        // Number of [GENRE] Movies in [YEAR]
+                        con3.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_post1980 WHERE genre=? AND year=?;", [genre, year], function (err, result) {
+                            if (err) {
+                                throw err;
+                            }
+    
+                            answers.push(result[0]['COUNT(DISTINCT name, year)']);
+    
+                            // Number of [GENRE] Movies in [YEAR] by [DIRECTOR]
+                            con3.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_post1980 WHERE genre=? AND year=? AND director=?;", [genre, year, director], function (err, result) {
+                                if (err) {
+                                    throw err;
+                                }
+                                    con3.commit((err)=> {
+                                        if (err) throw err
+                                        //closeconnection(con3);
+                                        con3.query("UNLOCK TABLES", (err)=> {
+                                            if (err) throw err
+                                            answers.push(result[0]['COUNT(DISTINCT name, year)']);
+                                            return callback(answers);
+                                        })
+                                    })
+    
+                            });
+                        });
+                    });
+                });
+            }
+        }else{
+            con1.query("LOCK TABLES final_movies_all READ", function (err) {
+                if (err) throw err;
 
-            // Number of [GENRE] Movies in [YEAR] by [DIRECTOR]
-            con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all WHERE genre=? AND year=? AND director=?;", [genre, year, director], function(err, result){
-                if(err){
-                    throw err;
-                }
+                con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all;", function (err, result) {
+                    if (err) {
+                        throw err;
+                    }
 
-                //closeconnection(con1);
-                answers.push(result[0]['COUNT(DISTINCT name, year)']);
-                return callback(answers);
+                    answers.push(result[0]['COUNT(DISTINCT name, year)']);
+
+                    // Number of [GENRE] Movies in [YEAR]
+                    con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all WHERE genre=? AND year=?;", [genre, year], function (err, result) {
+                        if (err) {
+                            throw err;
+                        }
+
+                        answers.push(result[0]['COUNT(DISTINCT name, year)']);
+
+                        // Number of [GENRE] Movies in [YEAR] by [DIRECTOR]
+                        con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all WHERE genre=? AND year=? AND director=?;", [genre, year, director], function (err, result) {
+                            if (err) {
+                                throw err;
+                            }
+                                con1.commit((err)=> {
+                                    if (err) throw err
+                                    //closeconnection(con1);
+                                    con1.query("UNLOCK TABLES", (err)=> {
+                                        if (err) throw err
+                                        answers.push(result[0]['COUNT(DISTINCT name, year)']);
+                                        return callback(answers);
+                                    })
+                                })
+
+                        });
+                    });
+                });
             });
-        });
+        }
     });
 }
 
@@ -358,10 +451,10 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
                                             throw err1;
                                         });
                                     }
-                                    if(!hasCalledback){
+                                    if (!hasCalledback) {
                                         callback(true);
                                         hasCalledback = true;
-                                    } 
+                                    }
                                     //closeconnection(con1);
                                 });
                             });
@@ -427,7 +520,7 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
                                                 throw err2;
                                             });
                                         }
-                                        if(!hasCalledback){
+                                        if (!hasCalledback) {
                                             callback(true)
                                             hasCalledback = true;
                                         }
@@ -499,7 +592,7 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
                                                 throw err3;
                                             });
                                         }
-                                        if(!hasCalledback){
+                                        if (!hasCalledback) {
                                             callback(true)
                                             hasCalledback = true;
                                         }
@@ -781,10 +874,10 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                 throw err1;
                                             });
                                         }
-                                        if(!hasCalledback){
+                                        if (!hasCalledback) {
                                             callback(true);
                                             hasCalledback = true
-                                        } 
+                                        }
                                         //closeconnection(con1);
                                     });
                                 });
@@ -844,10 +937,10 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                                     throw err3;
                                                                 });
                                                             }
-                                                            if(!hasCalledback){
+                                                            if (!hasCalledback) {
                                                                 callback(true);
                                                                 hasCalledback = true
-                                                            } 
+                                                            }
                                                             //closeconnection(con3);
                                                         })
                                                     });
@@ -914,10 +1007,10 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                                 throw err2;
                                                             });
                                                         }
-                                                        if(!hasCalledback){
+                                                        if (!hasCalledback) {
                                                             callback(true);
                                                             hasCalledback = true
-                                                        } 
+                                                        }
                                                         //closeconnection(con2);
                                                     })
                                                 });
@@ -987,10 +1080,10 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                 throw err1;
                                             });
                                         }
-                                        if(!hasCalledback){
+                                        if (!hasCalledback) {
                                             callback(true);
                                             hasCalledback = true
-                                        } 
+                                        }
                                         //closeconnection(con1);
                                     });
                                 });
@@ -1055,10 +1148,10 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                     throw err2;
                                                 });
                                             }
-                                            if(!hasCalledback){
+                                            if (!hasCalledback) {
                                                 callback(true);
                                                 hasCalledback = true
-                                            } 
+                                            }
                                             //closeconnection(con2);
                                         });
                                     });
@@ -1123,10 +1216,10 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                                                     throw err3;
                                                 });
                                             }
-                                            if(!hasCalledback){
+                                            if (!hasCalledback) {
                                                 callback(true);
                                                 hasCalledback = true
-                                            } 
+                                            }
                                             //closeconnection(con3);
                                         })
                                     })
@@ -1140,7 +1233,7 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
     }
 }
 
-function recover(){
+function recover() {
 
     //TODO:check if servers are online before attempting recovery
     //TODO:error handling
@@ -1157,105 +1250,105 @@ function recover(){
                 con1.query("SELECT * from new_recovery_log;", values, function (err, results) {
 
                     results.foreach(resultitem => {
-        
+
                         var type = resultitem.type;
                         var name = resultitem.name;
                         var year = resultitem.year;
                         var rank = resultitem.rank;
                         var genre = resultitem.genre;
                         var director = resultitem.director;
-        
+
                         var old_name = resultitem.name;
                         var old_year = resultitem.year;
                         var old_genre = resultitem.genre;
                         var old_director = resultitem.director;
-        
-                        if(resultitem.type == "INSERT" || resultitem.type == "UPDATE"){
-        
-                            if(resultitem.year < 1980){
-                                con2.query("SELECT * from new_recovery_log WHERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [name, year, rank, genre, director], function(err, results){
-                                    if(results.length == 0){ //search for corresponding log entry in other node, if not found perform query
-        
-                                        if(type == "INSERT"){
+
+                        if (resultitem.type == "INSERT" || resultitem.type == "UPDATE") {
+
+                            if (resultitem.year < 1980) {
+                                con2.query("SELECT * from new_recovery_log WHERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [name, year, rank, genre, director], function (err, results) {
+                                    if (results.length == 0) { //search for corresponding log entry in other node, if not found perform query
+
+                                        if (type == "INSERT") {
                                             con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
-                                                con2.commit(function (err) {})
+                                                con2.commit(function (err) { })
                                             });
-        
+
                                         }
-                                        else if(type == "UPDATE"){
+                                        else if (type == "UPDATE") {
                                             con2.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
-                                                con2.commit(function (err) {})
+                                                con2.commit(function (err) { })
                                             });
                                         }
 
-                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
-                                            con1.commit(function (err3) {})
+                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err) {
+                                            con1.commit(function (err3) { })
                                         }); //remove from log
 
-                                    }else{
-                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
-                                            con1.commit(function (err) {})
+                                    } else {
+                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err) {
+                                            con1.commit(function (err) { })
                                         });
 
-                                        con2.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
-                                            con1.commit(function (err) {})
+                                        con2.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err) {
+                                            con1.commit(function (err) { })
                                         });
                                     }
                                 })
                             }
-                            else if(resultitem.year >= 1980){
-                                con3.query("SELECT * from new_recovery_log WHERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [name, year, rank, genre, director], function(err, results){
-                                    if(results.length == 0){
-        
-                                        if(type == "INSERT"){
+                            else if (resultitem.year >= 1980) {
+                                con3.query("SELECT * from new_recovery_log WHERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [name, year, rank, genre, director], function (err, results) {
+                                    if (results.length == 0) {
+
+                                        if (type == "INSERT") {
                                             con3.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
-                                                con3.commit(function (err) {})
+                                                con3.commit(function (err) { })
                                             });
-        
+
                                         }
-                                        else if(type == "UPDATE"){
+                                        else if (type == "UPDATE") {
                                             con3.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
-                                                con3.commit(function (err) {})
+                                                con3.commit(function (err) { })
                                             });
                                         }
 
-                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
-                                            con1.commit(function (err3) {})
+                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err) {
+                                            con1.commit(function (err3) { })
                                         });
 
-                                    }else{
-                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
-                                            con1.commit(function (err) {})
+                                    } else {
+                                        con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err) {
+                                            con1.commit(function (err) { })
                                         });
 
-                                        con3.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function(err){
-                                            con3.commit(function (err) {})
+                                        con3.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err) {
+                                            con3.commit(function (err) { })
                                         });
                                     }
                                 })
                             }
                         }
-                        else{
-                            con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;",function (err, result) {
-                                con1.commit(function (err) {})
+                        else {
+                            con1.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err, result) {
+                                con1.commit(function (err) { })
                             });
                         }
                     });
-                
+
                 })
 
                 //read con2 logs
                 con2.query("SELECT * from new_recovery_log;", values, function (err, results) {
 
                     results.foreach(resultitem => {
-        
+
                         var type = resultitem.type;
                         var name = resultitem.name;
                         var year = resultitem.year;
                         var rank = resultitem.rank;
                         var genre = resultitem.genre;
                         var director = resultitem.director;
-        
+
                         var old_name = resultitem.name;
                         var old_year = resultitem.year;
                         var old_genre = resultitem.genre;
@@ -1264,20 +1357,20 @@ function recover(){
                         //remaining insert/update logs are entries that were
                         //missed/were not present in Node 1 
                         //no need to check for corresponding entry
-        
-                        if(type == "INSERT"){
+
+                        if (type == "INSERT") {
                             con1.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
-                                con1.commit(function (err) {})
+                                con1.commit(function (err) { })
                             });
                         }
-                        else if(type == "UPDATE"){
+                        else if (type == "UPDATE") {
                             con1.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
-                                con1.commit(function (err) {})
+                                con1.commit(function (err) { })
                             });
                         }
 
-                        con2.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;",function (err, result) {
-                            con2.commit(function (err) {})
+                        con2.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err, result) {
+                            con2.commit(function (err) { })
                         });
                     });
                 })
@@ -1286,36 +1379,36 @@ function recover(){
                 con3.query("SELECT * from new_recovery_log;", values, function (err, results) {
 
                     results.foreach(resultitem => {
-        
+
                         var type = resultitem.type;
                         var name = resultitem.name;
                         var year = resultitem.year;
                         var rank = resultitem.rank;
                         var genre = resultitem.genre;
                         var director = resultitem.director;
-        
+
                         var old_name = resultitem.name;
                         var old_year = resultitem.year;
                         var old_genre = resultitem.genre;
                         var old_director = resultitem.director;
-        
-                        if(type == "INSERT"){
+
+                        if (type == "INSERT") {
                             con1.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
-                                con1.commit(function (err) {})
+                                con1.commit(function (err) { })
                             });
                         }
-                        else if(type == "UPDATE"){
+                        else if (type == "UPDATE") {
                             con1.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
-                                con1.commit(function (err) {})
+                                con1.commit(function (err) { })
                             });
                         }
 
-                        con3.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;",function (err, result) {
-                            con3.commit(function (err) {})
+                        con3.query("DELETE FROM new_recovery_log WHERE HERE name=? AND year=? AND `rank`=? AND genre=? AND director=?;", function (err, result) {
+                            con3.commit(function (err) { })
                         });
                     });
                 })
-                
+
                 con1.query("UNLOCK TABLES", function (err3) {
                     if (err) throw err;
                     //closeconnection(con1);
@@ -1335,7 +1428,7 @@ function recover(){
     })
 }
 
-function closeAllConnection(){
+function closeAllConnection() {
     con1.end(function (err) {
         if (err) throw err;
         console.log("Closed connection " + 1);
