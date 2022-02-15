@@ -13,7 +13,7 @@ var add_director = document.getElementById("add_director");
 var btn_report = document.getElementById("btn_modal_report");
 var span_report = document.getElementById("span_modal_report");
 
-var btn_edit = document.getElementById("btn_modal_edit");
+var btn_edit = document.getElementsByClassName("btn_modal_edit");
 var span_edit = document.getElementById("span_modal_edit");
 
 var edit_name = document.getElementById("update_name");
@@ -26,6 +26,7 @@ var btn_search = document.getElementById("btn_search")
 var search_field = document.getElementById("search_field");
 var search_value = document.getElementById("search_value");
 
+let old_values = [];
 btn_add.onclick = function() {
     document.getElementById('modal_add').style.display='block';
 }
@@ -62,9 +63,25 @@ span_report.onclick = function() {
     document.getElementById('modal_report').style.display='none'
 }
 
-btn_edit.onclick = function() {
+
+$(document).on('click', '.btn_modal_edit', function(e){
     document.getElementById('modal_edit').style.display='block';
-}
+    const currentTR = $(this).parents('tr');
+    // console.log(currentTR.children('.m_name').val());
+    m_name = currentTR.children('.m_name').html();
+    m_year = currentTR.children('.m_year').html();
+    m_rank = currentTR.children('.m_rank').html();
+    m_genre = currentTR.children('.m_genre').html();
+    m_director = currentTR.children('.m_director').html();
+
+    $('#update_name').val(m_name);
+    $('#update_year').val(m_year);
+    $('#update_rank').val(m_rank);
+    $('#update_genre').val(m_genre);
+    $('#update_director').val(m_director);
+
+    old_values = [m_name,m_year,m_genre,m_director];
+})
 
 span_edit.onclick = function() {
     document.getElementById('modal_edit').style.display='none'
@@ -76,7 +93,8 @@ btn_modal_update.onclick = function(){
         year: edit_director.value,
         rank: edit_rank.value,
         genre: edit_genre.value,
-        director: edit_director.value
+        director: edit_director.value,
+        old_data : old_values,
     };
     console.log(data);
     $.post('edit_movie', data, function(res){
@@ -92,7 +110,21 @@ btn_search.onclick = function(){
     console.log(data);
     $.get('/search_movie', data, function(res){
         // show results
-        console.log(res);
+        // console.log(res[0]);
+        
+        for(let movie of res){
+            // console.log(movie);
+            $('#results_tbl > tbody:last-child').append(`
+                <tr>
+                <td class="m_name">${movie.name}</td>
+                <td class="m_year">${movie.year}</td>
+                <td class="m_rank">${movie.rank}</td>
+                <td class="m_genre">${movie.genre}</td>
+                <td class="m_director">${movie.director}</td>
+                <td class="btn_col"><button class="btn_modal_edit">EDIT</button></td>
+                </tr>`);
+        }
+
     });
 }
 
