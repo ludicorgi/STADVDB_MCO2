@@ -165,7 +165,7 @@ function newSearch(field, value, callback) {
             } else {
                 // field is not year
                 con2.query("SET autocommit = 0", function (err2) {
-                    if (errNode2) throw err2;
+                    if (err2) throw err2;
                     else {
                         // transaction began
                         con2.query("LOCK TABLES movies_pre1980 READ", (err) => {
@@ -214,7 +214,7 @@ function newSearch(field, value, callback) {
                 });
 
                 con3.query("SET autocommit = 0", function (err3) {
-                    if (errNode3) throw err;
+                    if (err3) throw err;
                     else {
                         // transaction began
                         con3.query("LOCK TABLES movies_post1980 READ", (err) => {
@@ -430,8 +430,8 @@ function newInsert(name, year, rank, genre, director) {
     });
 }
 
-function reallyNewInsert(name, year, rank, genre, director) {
-
+function reallyNewInsert(name, year, rank, genre, director, callback) {
+    let node1Sucess = false, node2Success = false, node3Success = false;
     con1.query("SET autocommit = 0", function (err1) {
         con1.query("LOCK TABLES new_recovery_log WRITE, final_movies_all WRITE", function (err1) {
             if (err1) {
@@ -487,6 +487,7 @@ function reallyNewInsert(name, year, rank, genre, director) {
                                             throw err1;
                                         });
                                     }
+                                    node1Success = true;
                                     closeConnection(con1);
                                 });
                             });
@@ -552,6 +553,7 @@ function reallyNewInsert(name, year, rank, genre, director) {
                                                 throw err2;
                                             });
                                         }
+                                        node2Success = true;
                                         closeConnection(con2);
                                     });
                                 });
@@ -620,6 +622,7 @@ function reallyNewInsert(name, year, rank, genre, director) {
                                                 throw err3;
                                             });
                                         }
+                                        node3Success = true;
                                         closeConnection(con3);
                                     });
                                 });
@@ -629,6 +632,9 @@ function reallyNewInsert(name, year, rank, genre, director) {
                 });
             });
         });
+    }
+    if(node1Sucess && (node3Success || node2Success)){
+        callback(true);
     }
 }
 
@@ -1485,4 +1491,4 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
         }
     }
 }
-module.exports = { closeConnection, searchRecord, insertOneRecordIntoAllNodes };
+module.exports = { newSearch, reallyNewUpdate, reallyNewInsert };
