@@ -116,7 +116,7 @@ async function concurrencyTest2(option) {
             if (err) console.error(err);
             con3.query("UPDATE final_movies_post1980 SET `rank`= " + rank + " WHERE name = ' boire'", (err) => {
                 if (err) console.error(err);
-                con3.query("DO SLEEP(8)", (err) => {
+                con3.query("DO SLEEP(6)", (err) => {
                     if (err) console.error(err);
                     str += ("Node 3 Sleep 8\n")
                     console.log("Node 3 Sleep 8");
@@ -142,7 +142,7 @@ async function concurrencyTest2(option) {
             console.log("Node 1 Locked T1");
             str += ("Node 1 Locked T1\n");
             con1.query("UPDATE final_movies_all SET `rank`= " + rank + " WHERE name = ' boire'", (err, res) => { // rank is null before
-                con1.query("DO SLEEP(8)", (err) => {
+                con1.query("DO SLEEP(6)", (err) => {
                     console.log("Node 1 Sleep 8");
                     str += ("Node 1 Sleep 8\n")
                     con1.query("UNLOCK TABLES", (err) => {
@@ -279,7 +279,7 @@ async function concurrencyTest3(option) {
             console.log("Node 1 Locked T1");
             str += ("Node 1 Locked T1\n");
             con1.query("UPDATE final_movies_all SET `rank`= " + rank + " WHERE name = ' boire'", (err, res) => { // rank is null before
-                con1.query("DO SLEEP(8)", (err) => {
+                con1.query("DO SLEEP(6)", (err) => {
                     console.log("Node 1 Sleep 8 T1");
                     str += ("Node 1 Sleep 8 T1\n")
                     con1.commit((err) => {
@@ -331,7 +331,7 @@ async function concurrencyTest3(option) {
             });
         });
     });
-    await sleep(10000)
+    await sleep(8000)
     let c1, c3;
     con1.query("LOCK TABLES final_movies_all READ", (err) => {
         con1.query("SELECT `name`, `year`, `rank`, genre, director FROM final_movies_all WHERE name = ' boire';", (err, res) => {
@@ -360,6 +360,7 @@ async function concurrencyTest3(option) {
             con3.query("UNLOCK TABLES")
         })
     })
+    await sleep(2000);
     return str;
 
     // con3Clone2.query("LOCK TABLE final_movies_post1980 WRITE", (err) => {
@@ -508,6 +509,30 @@ async function runAllTests(callback) {
     callback(res);
 }
 
+async function demo1(callback){
+    let t = "Repeatable Read\n\n"
+    let tr = await concurrencyTest1();
+    t += tr
+
+    callback(t);
+}
+
+async function demo2(callback){
+    let t = "Repeatable Read\n\n"
+    let tr = await concurrencyTest2(2);
+    t += tr
+
+    callback(t);
+}
+
+async function demo3(callback){
+    let t = "Repeatable Read\n\n"
+    let tr = await concurrencyTest3(2);
+    t += tr
+
+    callback(t);
+}
+
 async function testSearch() {
     // director >1980 Hye Jung Park 2
     // director <1980 Frank Moser 442
@@ -525,4 +550,4 @@ async function testSearch() {
 //     console.log(res[1]);
 //     console.log(res[2]);
 // });
-module.exports = { runAllTests };
+module.exports = { runAllTests, demo1, demo2, demo3 };

@@ -26,7 +26,9 @@ var btn_search = document.getElementById("btn_search")
 var search_field = document.getElementById("search_field");
 var search_value = document.getElementById("search_value");
 
-var btn_demo = document.getElementById("btn_demo");
+var btn_demo1 = document.getElementById("btn_demo1");
+var btn_demo2 = document.getElementById("btn_demo2");
+var btn_demo3 = document.getElementById("btn_demo3");
 var span_demo = document.getElementById("span_modal_demo");
 
 let old_values = [];
@@ -107,10 +109,10 @@ span_report.onclick = function() {
     document.getElementById('modal_report').style.display='none'
 }
 
-btn_demo.onclick = function() {
+btn_demo1.onclick = function() {
     $.ajax({
         type: "GET",
-        url: "/demo",
+        url: "/demo1",
         beforeSend: function(){
             alert("Loading . . . Might take a while . . .");
         },
@@ -119,18 +121,53 @@ btn_demo.onclick = function() {
             // console.log(results);
 
             if(results){
-                $('#txt_demo1').html(results[0]);
-                $('#txt_demo2').html(results[1]);
-                $('#txt_demo3').html(results[2]);
+                $('#txt_demo1').html(results);
             }else{
                 $('#txt_demo1').html("Failed to get demo logs");
-                $('#txt_demo2').html("Failed to get demo logs");
-                $('#txt_demo3').html("Failed to get demo logs");
             }
             document.getElementById('modal_demo').style.display='block';
         }
     });
+}
+btn_demo2.onclick = function() {
+    $.ajax({
+        type: "GET",
+        url: "/demo2",
+        beforeSend: function(){
+            alert("Loading . . . Might take a while . . .");
+        },
+        success: function (results) {
+            // console.log("Z");
+            // console.log(results);
 
+            if(results){
+                $('#txt_demo1').html(results);
+            }else{
+                $('#txt_demo1').html("Failed to get demo logs");
+            }
+            document.getElementById('modal_demo').style.display='block';
+        }
+    });
+}
+btn_demo3.onclick = function() {
+    $.ajax({
+        type: "GET",
+        url: "/demo3",
+        beforeSend: function(){
+            alert("Loading . . . Might take a while . . .");
+        },
+        success: function (results) {
+            // console.log("Z");
+            // console.log(results);
+
+            if(results){
+                $('#txt_demo1').html(results);
+            }else{
+                $('#txt_demo1').html("Failed to get demo logs");
+            }
+            document.getElementById('modal_demo').style.display='block';
+        }
+    });
 }
 
 span_demo.onclick = function(){

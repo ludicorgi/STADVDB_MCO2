@@ -21,7 +21,9 @@ app.post('/edit_movie', controller.editMovie);
 app.get('/generate_reports', controller.generateReports);
 
 // Demo Logs
-app.get('/demo', controller.demoLogs);
+app.get('/demo1', controller.demoLogs1);
+app.get('/demo2', controller.demoLogs2);
+app.get('/demo3', controller.demoLogs3);
 
 // Recovery
 app.get('/recover', controller.recoverNodes);

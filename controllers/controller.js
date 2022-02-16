@@ -5,7 +5,9 @@ const update = db.reallyNewUpdate;
 const insert = db.reallyNewInsert;
 const end = db.closeAllConnection;
 const reports = db.generateAllReports;
-const logs = demo.runAllTests;
+const log1 = demo.demo1;
+const log2 = demo.demo2;
+const log3 = demo.demo3;
 const recover = db.recoverAll;
 
 const controller = {
@@ -62,8 +64,30 @@ const controller = {
         })
     },
 
-    demoLogs: function(req, res){
-        logs((log)=> {
+    demoLogs1: function(req, res){
+        log1((log)=> {
+            // console.log(log);
+            if(log){
+                res.status(200).send(log);
+            }else{
+                res.status(500).send("");
+            }
+        })
+    },
+
+    demoLogs2: function(req, res){
+        log2((log)=> {
+            // console.log(log);
+            if(log){
+                res.status(200).send(log);
+            }else{
+                res.status(500).send("");
+            }
+        })
+    },
+
+    demoLogs3: function(req, res){
+        log3((log)=> {
             // console.log(log);
             if(log){
                 res.status(200).send(log);
