@@ -35,7 +35,7 @@ var con1Clone = mysql.createConnection({
 var con2Clone = mysql.createConnection({
     host: "34.96.224.7",
     port: 3306,
-    user: "admin",
+    user: "root",
     password: "ADVANDBMPG9",
     database: "node2"
 });
@@ -71,7 +71,7 @@ function createConnectionNode2() {
     return mysql.createConnection({
         host: "34.96.224.7",
         port: 3306,
-        user: "admin",
+        user: "root",
         password: "ADVANDBMPG9",
         database: "node2"
     });

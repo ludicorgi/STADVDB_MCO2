@@ -26,6 +26,9 @@ var btn_search = document.getElementById("btn_search")
 var search_field = document.getElementById("search_field");
 var search_value = document.getElementById("search_value");
 
+var btn_demo = document.getElementById("btn_demo");
+var span_demo = document.getElementById("span_modal_demo");
+
 let old_values = [];
 btn_add.onclick = function() {
     document.getElementById('modal_add').style.display='block';
@@ -102,6 +105,28 @@ btn_report.onclick = function() {
 
 span_report.onclick = function() {
     document.getElementById('modal_report').style.display='none'
+}
+
+btn_demo.onclick = function() {
+    $.ajax({
+        type: "GET",
+        url: "/demo",
+        beforeSend: function(){
+            alert("Loading . . .");
+        },
+        success: function (results) {
+            if(results){
+                $('txt_demo').html(results);
+            }else{
+                $('txt_demo').html("Failed to get demo logs");
+            }
+        }
+    });
+
+}
+
+span_demo.onclick = function(){
+    document.getElementById('modal_demo').style.display='none';
 }
 
 

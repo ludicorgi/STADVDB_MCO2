@@ -20,6 +20,8 @@ app.post('/edit_movie', controller.editMovie);
 // Generate Reports
 app.get('/generate_reports', controller.generateReports);
 
+// Demo Logs
+app.get('/demo', controller.demoLogs);
 
 
 module.exports = app;

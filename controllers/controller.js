@@ -1,9 +1,11 @@
 const db = require('../db_dummy/db_functions');
+const demo = require('../db_dummy/db_concurrency_tests');
 const search = db.newSearch;
 const update = db.reallyNewUpdate;
 const insert = db.reallyNewInsert;
 const end = db.closeAllConnection;
 const reports = db.generateAllReports;
+const logs = demo.runAllTests;
 
 const controller = {
     getIndex: function(req, res) {
@@ -57,6 +59,15 @@ const controller = {
             if(results) res.status(200).send(results)
             else res.status(500).send([0,0,0])
         })
+    },
+
+    demoLogs: async function(req, res){
+        let log = await logs();
+        if(log){
+            res.status(200).send(log);
+        }else{
+            res.status(500).send("");
+        }
     }
 };
 
