@@ -755,7 +755,7 @@ function InsertSimulateReplicaError(name, year, rank, genre, director, callback)
                                 callback(true);
                                 hasCalledback = true;
                             }
-                            console.log("node 1 tables unlocked");
+                            //console.log("node 1 tables unlocked");
                         });
                     });
                 });
@@ -785,26 +785,8 @@ function InsertSimulateReplicaError(name, year, rank, genre, director, callback)
                     }
 
                     con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err2) {
-                        if (err2) {
+                        if (true) {
                             return con2.rollback(function () {
-                                throw err2;
-                            });
-                        }
-
-                        //added portion
-                        con2.query("SIGNAL SQLSTATE '45000'",function(err2) {
-                            if (err2) {
-                                return con2.rollback(function () {
-                                    throw err2;
-                                });
-                            }
-
-                            con2.commit(function (err2) {
-                                if (err2) {
-                                    return con2.rollback(function () {
-                                        throw err2;
-                                    });
-                                }
                                 con2.query("UNLOCK TABLES", function (err2) {
                                     if (err2) {
                                         return con2.rollback(function () {
@@ -815,10 +797,30 @@ function InsertSimulateReplicaError(name, year, rank, genre, director, callback)
                                         callback(true)
                                         hasCalledback = true;
                                     }
-                                    console.log("node 2 tables unlocked")
+                                    //console.log("node 2 tables unlocked")
                                 });
                             });
-                        })
+                        }
+
+                        con2.commit(function (err2) {
+                            if (err2) {
+                                return con2.rollback(function () {
+                                    throw err2;
+                                });
+                            }
+                            con2.query("UNLOCK TABLES", function (err2) {
+                                if (err2) {
+                                    return con2.rollback(function () {
+                                        throw err2;
+                                    });
+                                }
+                                if (!hasCalledback) {
+                                    callback(true)
+                                    hasCalledback = true;
+                                }
+                                //console.log("node 2 tables unlocked")
+                            });
+                        });
                     });
                 });
             });
@@ -849,25 +851,8 @@ function InsertSimulateReplicaError(name, year, rank, genre, director, callback)
                     }
 
                     con3.query("INSERT INTO final_movies_post1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err3) {
-                        if (err3) {
+                        if (true) {
                             return con3.rollback(function () {
-                                throw err3;
-                            });
-                        }
-
-                        //added portion
-                        con3.query("SIGNAL SQLSTATE '45000'",function(err2) {
-                            if (err2) {
-                                return con2.rollback(function () {
-                                    throw err2;
-                                });
-                            }
-                            con3.commit(function (err3) {
-                                if (err3) {
-                                    return con3.rollback(function () {
-                                        throw err3;
-                                    });
-                                }
                                 con3.query("UNLOCK TABLES", function (err3) {
                                     if (err3) {
                                         return con3.rollback(function () {
@@ -878,12 +863,30 @@ function InsertSimulateReplicaError(name, year, rank, genre, director, callback)
                                         callback(true)
                                         hasCalledback = true;
                                     }
-                                    console.log("node 3 tables unlocked")
+                                    //console.log("node 3 tables unlocked")
                                 });
                             });
-                        });
+                        }
 
-                        
+                        con3.commit(function (err3) {
+                            if (err3) {
+                                return con3.rollback(function () {
+                                    throw err3;
+                                });
+                            }
+                            con3.query("UNLOCK TABLES", function (err3) {
+                                if (err3) {
+                                    return con3.rollback(function () {
+                                        throw err3;
+                                    });
+                                }
+                                if (!hasCalledback) {
+                                    callback(true)
+                                    hasCalledback = true;
+                                }
+                                //console.log("node 3 tables unlocked")
+                            });
+                        });
                     });
                 });
             });
@@ -910,28 +913,11 @@ function InsertSimulatePrimaryError(name, year, rank, genre, director, callback)
                 }
 
                 con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err1) {
-                    if (err1) {
+                    if (true) {
                         return con1.rollback(function () {
-                            throw err1;
-                        });
-                    }
 
-                    //added portion
-                    con1.query("SIGNAL SQLSTATE '45000'",function(err2) {
-                        if (err2) {
-                            return con2.rollback(function () {
-                                throw err2;
-                            });
-                        }
-
-                        con1.commit(function (err1) {
-                            if (err1) {
-                                return con1.rollback(function () {
-                                    throw err1;
-                                });
-                            }
                             con1.query("UNLOCK TABLES", function (err1) {
-                                if (err1) {
+                                if (err1) {x
                                     return con1.rollback(function () {
                                         throw err1;
                                     });
@@ -940,10 +926,30 @@ function InsertSimulatePrimaryError(name, year, rank, genre, director, callback)
                                     callback(true);
                                     hasCalledback = true;
                                 }
-                                console.log("node 1 tables unlocked");
+                                //console.log("node 1 tables unlocked");
                             });
-                        });
 
+                        });
+                    }
+
+                    con1.commit(function (err1) {
+                        if (err1) {
+                            return con1.rollback(function () {
+                                throw err1;
+                            });
+                        }
+                        con1.query("UNLOCK TABLES", function (err1) {
+                            if (err1) {x
+                                return con1.rollback(function () {
+                                    throw err1;
+                                });
+                            }
+                            if (!hasCalledback) {
+                                callback(true);
+                                hasCalledback = true;
+                            }
+                            console.log("node 1 tables unlocked");
+                        });
                     });
                 });
             });
@@ -994,7 +1000,7 @@ function InsertSimulatePrimaryError(name, year, rank, genre, director, callback)
                                     callback(true)
                                     hasCalledback = true;
                                 }
-                                console.log("node 2 tables unlocked")
+                                //console.log("node 2 tables unlocked")
                             });
                         });
                     });
@@ -1049,7 +1055,7 @@ function InsertSimulatePrimaryError(name, year, rank, genre, director, callback)
                                     callback(true)
                                     hasCalledback = true;
                                 }
-                                console.log("node 3 tables unlocked")
+                                //console.log("node 3 tables unlocked")
                             });
                         });
                     });
@@ -1867,13 +1873,13 @@ function recoverAll(){
                                                             con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
                                                                 con1.commit(function (err3) {
                                                                     con1.query("UNLOCK TABLES", function(err1){
-                                                                        console.log("node 1 unlocked");
+                                                                        //console.log("node 1 unlocked");
                                                                     });
                                                                     con2.query("UNLOCK TABLES", function(err2){
-                                                                        console.log("node 2 unlocked");
+                                                                        //console.log("node 2 unlocked");
                                                                     });
                                                                     con3.query("UNLOCK TABLES", function(err2){
-                                                                        console.log("node 3 unlocked");
+                                                                        //console.log("node 3 unlocked");
                                                                     });
                                                                 })
                                                             }); 
@@ -1888,13 +1894,13 @@ function recoverAll(){
                                                             con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
                                                                 con1.commit(function (err3) {
                                                                     con1.query("UNLOCK TABLES", function(err1){
-                                                                        console.log("node 1 unlocked");
+                                                                        //console.log("node 1 unlocked");
                                                                     });
                                                                     con2.query("UNLOCK TABLES", function(err3){
-                                                                        console.log("node 2 unlocked");
+                                                                        //console.log("node 2 unlocked");
                                                                     });
                                                                     con3.query("UNLOCK TABLES", function(err2){
-                                                                        console.log("node 3 unlocked");
+                                                                        //console.log("node 3 unlocked");
                                                                     });
                                                                 });
                                                             });
@@ -1906,13 +1912,13 @@ function recoverAll(){
                                                 con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
                                                     con1.commit(function (err1) {
                                                         con1.query("UNLOCK TABLES", function(err1){
-                                                            console.log("node 1 unlocked");
+                                                            //console.log("node 1 unlocked");
                                                         });
                                                         con2.query("UNLOCK TABLES", function(err3){
-                                                            console.log("node 2 unlocked");
+                                                            //console.log("node 2 unlocked");
                                                         });
                                                         con3.query("UNLOCK TABLES", function(err2){
-                                                            console.log("node 3 unlocked");
+                                                            //console.log("node 3 unlocked");
                                                         });
                                                     })
                                                 });
@@ -1920,13 +1926,13 @@ function recoverAll(){
                                                 con2.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
                                                     con1.commit(function (err2) {
                                                         con1.query("UNLOCK TABLES", function(err1){
-                                                            console.log("node 1 unlocked");
+                                                            //console.log("node 1 unlocked");
                                                         });
                                                         con2.query("UNLOCK TABLES", function(err3){
-                                                            console.log("node 2 unlocked");
+                                                            //console.log("node 2 unlocked");
                                                         });
                                                         con3.query("UNLOCK TABLES", function(err2){
-                                                            console.log("node 3 unlocked");
+                                                            //console.log("node 3 unlocked");
                                                         });
                                                     })
                                                 });
@@ -1946,13 +1952,13 @@ function recoverAll(){
                                                             con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
                                                                 con1.commit(function (err3) {
                                                                     con1.query("UNLOCK TABLES", function(err1){
-                                                                        console.log("node 1 unlocked");
+                                                                        //console.log("node 1 unlocked");
                                                                     })
                                                                     con2.query("UNLOCK TABLES", function(err3){
-                                                                        console.log("node 2 unlocked");
+                                                                        //console.log("node 2 unlocked");
                                                                     });
                                                                     con3.query("UNLOCK TABLES", function(err2){
-                                                                        console.log("node 3 unlocked");
+                                                                        //console.log("node 3 unlocked");
                                                                     })
                                                                 })
                                                             }); 
@@ -1967,13 +1973,13 @@ function recoverAll(){
                                                             con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
                                                                 con1.commit(function (err3) {
                                                                     con1.query("UNLOCK TABLES", function(err1){
-                                                                        console.log("node 1 unlocked");
+                                                                        //console.log("node 1 unlocked");
                                                                     });
                                                                     con2.query("UNLOCK TABLES", function(err3){
-                                                                        console.log("node 2 unlocked");
+                                                                        //console.log("node 2 unlocked");
                                                                     });
                                                                     con3.query("UNLOCK TABLES", function(err3){
-                                                                        console.log("node 3 unlocked");
+                                                                        //console.log("node 3 unlocked");
                                                                     });
                                                                 });
                                                             });
@@ -1985,13 +1991,13 @@ function recoverAll(){
                                                 con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
                                                     con1.commit(function (err1) {
                                                         con1.query("UNLOCK TABLES", function(err1){
-                                                            console.log("node 1 unlocked");
+                                                            //console.log("node 1 unlocked");
                                                         });
                                                         con2.query("UNLOCK TABLES", function(err3){
-                                                            console.log("node 2 unlocked");
+                                                            //console.log("node 2 unlocked");
                                                         });
                                                         con3.query("UNLOCK TABLES", function(err3){
-                                                            console.log("node 3 unlocked");
+                                                            //console.log("node 3 unlocked");
                                                         });
                                                     })
                                                 });
@@ -1999,13 +2005,13 @@ function recoverAll(){
                                                 con3.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
                                                     con1.commit(function (err2) {
                                                         con1.query("UNLOCK TABLES", function(err1){
-                                                            console.log("node 1 unlocked");
+                                                            //console.log("node 1 unlocked");
                                                         });
                                                         con2.query("UNLOCK TABLES", function(err3){
-                                                            console.log("node 2 unlocked");
+                                                            //console.log("node 2 unlocked");
                                                         });
                                                         con3.query("UNLOCK TABLES", function(err3){
-                                                            console.log("node 3 unlocked");
+                                                            //console.log("node 3 unlocked");
                                                         });
                                                     })
                                                 });
@@ -2051,10 +2057,10 @@ function recoverAll(){
                                                     con2.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
                                                         con2.commit(function (err3) {
                                                             con1.query("UNLOCK TABLES", function(err1){
-                                                                console.log("node 1 unlocked");
+                                                                //console.log("node 1 unlocked");
                                                             });
                                                             con2.query("UNLOCK TABLES", function(err2){
-                                                                console.log("node 2 unlocked");
+                                                                //console.log("node 2 unlocked");
                                                             });
                                                         })
                                                     }); 
@@ -2069,10 +2075,10 @@ function recoverAll(){
                                                     con2.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
                                                         con1.commit(function (err3) {
                                                             con1.query("UNLOCK TABLES", function(err1){
-                                                                console.log("node 1 unlocked");
+                                                                //console.log("node 1 unlocked");
                                                             });
                                                             con2.query("UNLOCK TABLES", function(err3){
-                                                                console.log("node 2 unlocked");
+                                                                //console.log("node 2 unlocked");
                                                             });
                                                         });
                                                     });
@@ -2084,10 +2090,10 @@ function recoverAll(){
                                         con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
                                             con1.commit(function (err1) {
                                                 con1.query("UNLOCK TABLES", function(err1){
-                                                    console.log("node 1 unlocked");
+                                                    //console.log("node 1 unlocked");
                                                 });
                                                 con2.query("UNLOCK TABLES", function(err3){
-                                                    console.log("node 2 unlocked");
+                                                    //console.log("node 2 unlocked");
                                                 });
                                             })
                                         });
@@ -2095,10 +2101,10 @@ function recoverAll(){
                                         con2.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
                                             con1.commit(function (err2) {
                                                 con1.query("UNLOCK TABLES", function(err1){
-                                                    console.log("node 1 unlocked");
+                                                    //console.log("node 1 unlocked");
                                                 });
                                                 con2.query("UNLOCK TABLES", function(err3){
-                                                    console.log("node 2 unlocked");
+                                                    //console.log("node 2 unlocked");
                                                 });
                                             })
                                         });
@@ -2142,10 +2148,10 @@ function recoverAll(){
                                                     con3.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
                                                         con3.commit(function (err3) {
                                                             con1.query("UNLOCK TABLES", function(err1){
-                                                                console.log("node 1 unlocked");
+                                                                //console.log("node 1 unlocked");
                                                             });
                                                             con3.query("UNLOCK TABLES", function(err2){
-                                                                console.log("node 3 unlocked");
+                                                                //console.log("node 3 unlocked");
                                                             });
                                                         })
                                                     }); 
@@ -2160,10 +2166,10 @@ function recoverAll(){
                                                     con3.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
                                                         con1.commit(function (err3) {
                                                             con1.query("UNLOCK TABLES", function(err1){
-                                                                console.log("node 1 unlocked");
+                                                                //console.log("node 1 unlocked");
                                                             });
                                                             con3.query("UNLOCK TABLES", function(err3){
-                                                                console.log("node 3 unlocked");
+                                                                //console.log("node 3 unlocked");
                                                             });
                                                         });
                                                     });
@@ -2175,10 +2181,10 @@ function recoverAll(){
                                         con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
                                             con1.commit(function (err1) {
                                                 con1.query("UNLOCK TABLES", function(err1){
-                                                    console.log("node 1 unlocked");
+                                                    //console.log("node 1 unlocked");
                                                 });
                                                 con3.query("UNLOCK TABLES", function(err3){
-                                                    console.log("node 3 unlocked");
+                                                    //console.log("node 3 unlocked");
                                                 });
                                             })
                                         });
@@ -2186,10 +2192,10 @@ function recoverAll(){
                                         con3.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
                                             con1.commit(function (err2) {
                                                 con1.query("UNLOCK TABLES", function(err1){
-                                                    console.log("node 1 unlocked");
+                                                    //console.log("node 1 unlocked");
                                                 });
                                                 con3.query("UNLOCK TABLES", function(err3){
-                                                    console.log("node 3 unlocked");
+                                                    //console.log("node 3 unlocked");
                                                 });
                                             })
                                         });
