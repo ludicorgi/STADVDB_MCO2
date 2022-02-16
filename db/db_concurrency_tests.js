@@ -201,7 +201,7 @@ async function concurrencyTest2(option) {
                     con3Clone.query("UNLOCK TABLES", (err) => {
                         // console.log(res);
                         str += ("Transaction 4 Node 3 Unlocked\n")
-                        console.log(res);
+                        // console.log(res);
                         t3res = res[0].rank;
                         console.log("Transaction 4 committed", [t3res, rank]);
                         str += ("Transaction 4 committed " + [t3res, rank] + "\n");
@@ -210,9 +210,6 @@ async function concurrencyTest2(option) {
                 })
             })
         })
-    })
-    con1.query('SELECT @@transaction_ISOLATION;', (err, res) => {
-        console.log(res);
     })
     await sleep(8000);
     // T2 should be updated
@@ -251,9 +248,6 @@ async function concurrencyTest3(option) {
     } else {
         rank = 7
     }
-    con3Clone.query('SELECT @@transaction_ISOLATION;', (err, res) => {
-        console.log(res);
-    })
     // let year = 2000  // id 1; year 2000 is original
     con3.query("SET autocommit = 0", async (err) => {
         console.log("T2 Started");
@@ -367,9 +361,8 @@ async function concurrencyTest3(option) {
         })
     })
     await sleep(5000);
-    if (c1 && c3) {
-        return str;
-    }
+    return str;
+
     // con3Clone2.query("LOCK TABLE final_movies_post1980 WRITE", (err) => {
     //     if(err) throw err
     //     con3Clone2.beginTransaction((err) => {
