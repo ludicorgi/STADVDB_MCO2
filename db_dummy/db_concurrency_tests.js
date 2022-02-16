@@ -13,11 +13,14 @@ async function concurrencyTest1() {
     let t1res, t2res, fixedRes;
     let t1res2, t2res2;
     console.log("Test 1");
+    let str = "";
     con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
         if (err) throw err
         fixedRes = JSON.stringify(res);
     })
     con1.beginTransaction((err) => {
+        console.log("Transaction 1:");
+        str.concat("Transaction 1:\n")
         if (err) throw err
         con1.query("LOCK TABLES movies_all READ", (err) => {
             if (err) throw err
@@ -27,7 +30,6 @@ async function concurrencyTest1() {
                     if (err) throw err
                     con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
                         if (err) throw err
-                        console.log("Transaction 1:");
                         // console.log(res);
                         t1res = JSON.stringify(res);
                         con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
@@ -35,6 +37,7 @@ async function concurrencyTest1() {
                             t1res2 = JSON.stringify(res)
                             con1.query("UNLOCK TABLES", (err) => {
                                 if (err) throw err
+                                str.concat("T1 Done\n")
                                 console.log("T1 Done");
                                 con1.commit((err) => {
                                     if (err) throw err
@@ -49,6 +52,8 @@ async function concurrencyTest1() {
 
     await sleep(1000);
     con1Clone.beginTransaction((err) => {
+        str.concat("Transaction 2:\n")
+        console.log("Transaction 2:")
         if (err) throw err
         con1Clone.query("LOCK TABLES movies_all READ", (err) => {
             if (err) throw err
@@ -56,7 +61,6 @@ async function concurrencyTest1() {
                 if (err) throw err
                 con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
                     if (err) throw err
-                    console.log("Transaction 2:")
                     // console.log(res[0].rank);
                     t2res = JSON.stringify(res);
                     con3Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
@@ -64,6 +68,7 @@ async function concurrencyTest1() {
                         t2res2 = JSON.stringify(res);
                         con1Clone.query("UNLOCK TABLES", (err) => {
                             if (err) throw err
+                            str.concat("T2 Done\n")
                             console.log("T2 Done");
                             con1Clone.commit((err) => {
                                 if (err) throw err
@@ -79,6 +84,7 @@ async function concurrencyTest1() {
     await sleep(2000);
     if (t1res == fixedRes && t2res == fixedRes && t1res2 == t1res && t2res2 == t1res2) {
         console.log("Pass");
+        return str;
     } else console.log("Fail");
     // console.log(t1res);
 
@@ -88,22 +94,28 @@ async function concurrencyTest2(option) {
     let t2res, t3res;
     let rank // 5 or 7
     console.log("Test 2");
+    let str ="";
     if (option % 2 == 0) {
         rank = 5
     } else {
         rank = 7
     }
     con3.query("SET autocommit = 0", (err) => {
-        console.log("Transaction 1S:");
+        console.log("Transaction 2:");
+        str.concat("Transaction 2\n")
         con3.query("LOCK TABLE movies_post1980 WRITE", (err) => {
-            console.log("Node 3 Locked T1");
+            console.log("Node 3 Locked T2");
+            str.concat("Node 3 Locked T2\n")
             con3.query("UPDATE movies_post1980 SET `rank`= " + rank + " WHERE id=1", (err) => {
                 con3.query("DO SLEEP(8)", (err) => {
-                    console.log("8 Sleep over");
+                    str.concat("Node 3 Sleep 8\n")
+                    console.log("Node 3 Sleep 8");
                     con3.query("UNLOCK TABLES", (err) => {
-                        console.log("Transaction 1 Node 3 Unlocked");
+                        console.log("Transaction 2 Node 3 Unlocked");
+                        str.concat("Transaction 2 Node 3 Unlocked\n")
                         con3.commit((err) => {
-                            console.log("Transaction 1S End Transaction");
+                            console.log("Transaction 2 End Transaction");
+                            str.concat("Transaction 2 End Transaction\n");
                         })
                     })
                 })
@@ -112,16 +124,21 @@ async function concurrencyTest2(option) {
     })
 
     con1.query("SET autocommit = 0", async (err) => {
-        console.log("Transaction 1:")
+        console.log("Transaction 1:");
+        str.concat("Transaction 1:\n");
         con1.query("LOCK TABLE movies_all WRITE", (err) => {
             console.log("Node 1 Locked T1");
+            str.concat("Node 1 Locked T1\n");
             con1.query("UPDATE movies_all SET `rank`= " + rank + " WHERE id=1", (err, res) => { // rank is null before
                 con1.query("DO SLEEP(8)", (err) => {
-                    console.log("8 Sleep over");
+                    console.log("Node 1 Sleep 8");
+                    str.concat("Node 1 Sleep 8\n")
                     con1.query("UNLOCK TABLES", (err) => {
                         console.log("Transaction 1 Node 1 UNLOCKED");
+                        str.concat("Transaction 1 Node 1 UNLOCKED\n");
                         con1.commit((err) => {
                             console.log("Transaction 1 End Transaction");
+                            str.concat("Transaction 1 End Transaction\n")
                             if (err) throw err
                         })
                     })
@@ -134,9 +151,11 @@ async function concurrencyTest2(option) {
     // read node 1
     con1Clone.query("SET autocommit = 0", (err) => {
         if (err) throw err
-        console.log("Transaction 2:");
+        console.log("Transaction 3:");
+        str.concat("Transaction 3:\n")
         con1Clone.query("LOCK TABLE movies_all READ", (err) => {
-            console.log("Transaction 2 Locked");
+            console.log("Transaction 3 Node 1 Locked");
+            str.concat("Transaction 3 Node 1 Locked\n");
             if (err) throw err
             con1Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
                 if (err) throw err
@@ -144,7 +163,8 @@ async function concurrencyTest2(option) {
                     if (err) throw err
                     con1Clone.query("UNLOCK TABLES", (err) => {
                         t2res = res[0].rank;
-                        console.log("Transaction 2 committed", [t2res, rank]);
+                        console.log("Transaction 3 committed", [t2res, rank]);
+                        str.concat("Transaction 3 committed" +  [t2res,rank] +"\n");
                         if (err) throw err
                     })
                 })
@@ -154,16 +174,19 @@ async function concurrencyTest2(option) {
     // read node 3
     con3Clone.query("SET autocommit = 0", (err) => {
         if (err) throw err
-        console.log("Transaction 3:");
+        console.log("Transaction 4:");
+        str.concat("Transaction 4:\n")
         con3Clone.query("LOCK TABLE movies_post1980 READ", (err) => {
-            console.log("Transaction 3 Locked");
+            console.log("Transaction 4 Node 3 Locked");
+            str.concat("Transaction 4 Node 3 Locked\n");
             con3Clone.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
                 if (err) throw err
                 con3Clone.commit((err) => {
                     if (err) throw err
                     con3Clone.query("UNLOCK TABLES", (err) => {
                         t3res = res[0].rank;
-                        console.log("Transaction 3 committed", [t3res, rank]);
+                        console.log("Transaction 4 committed", [t3res, rank]);
+                        str.concat("Transaction 4 committed" + [t3res,rank] + "\n");
                         if (err) throw err
                     })
                 })
@@ -191,11 +214,12 @@ async function concurrencyTest2(option) {
         console.log('T3 fail');
     }
 
-    await sleep(5000);
     con3.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
         if (err) throw err
 
         if (res[0].rank == rank) console.log("node3 updated");
+
+        return str;
     })
 
 
@@ -203,6 +227,7 @@ async function concurrencyTest2(option) {
 
 async function concurrencyTest3(option) {
     let rank; // null or 5
+    let str="";
     console.log("Test 3");
     if (option % 2 == 0) {
         rank = 5
@@ -214,15 +239,21 @@ async function concurrencyTest3(option) {
     })
     // let year = 2000  // id 1; year 2000 is original
     con3.query("SET autocommit = 0", async (err) => {
-        console.log("Sub transaction 1 Started");
+        console.log("Transaction 2 Started");
+        str.concat("Transaction 2 Started\n")
         con3.query("LOCK TABLE movies_post1980 WRITE", (err) => {
-            console.log("Node 3 Locked T1");
+            console.log("Node 3 Locked T2");
+            str.concat("Node 3 Locked T2\n")
             con3.query("UPDATE movies_post1980 SET `rank`= " + rank + " WHERE id=1", (err) => {
                 con3.query("DO SLEEP(4)", (err) => {
-                    console.log("4 Sleep over");
+                    console.log("Node 3 Sleep 4");
+                    str.concat("Node 3 Sleep 4\n");
                     con3.commit((err) => {
+                        console.log(("Transaction 2 Committed"));
+                        str.concat("Transaction 2 Committed\n");
                         con3.query("UNLOCK TABLES", (err) => {
-                            console.log("Node 3 Unlocked T1");
+                            console.log("Node 3 Unlocked T2");
+                            str.concat("Node 3 Unlocked T2\n")
                         })
                     })
                 })
@@ -232,14 +263,20 @@ async function concurrencyTest3(option) {
     con1.query("SET autocommit = 0", async (err) => {
         if (err) throw err
         console.log("T1 Started");
+        str.concat("T1 Started\n");
         con1.query("LOCK TABLE movies_all WRITE", (err) => {
             console.log("Node 1 Locked T1");
+            str.concat("Node 1 Locked T1\n");
             con1.query("UPDATE movies_all SET `rank`= " + rank + " WHERE id=1", (err, res) => { // rank is null before
                 con1.query("DO SLEEP(8)", (err) => {
-                    console.log("Sub transaction 1 Committed");
+                    console.log("Node 1 Sleep 8");
+                    str.concat("Node 1 Sleep 8\n")
                     con1.commit((err) => {
+                        console.log("Transaction 1 Committed");
+                        str.concat("Transaction 1 Committed\n");
                         con1.query("UNLOCK TABLES", (err) => {
                             console.log("Node 1 Unlocked T1");
+                            str.concat("Node 1 Unlocked T1\n");
                         })
                     });
                 });
@@ -248,28 +285,36 @@ async function concurrencyTest3(option) {
     });
     await sleep(1000);
     con3Clone.query("SET autocommit = 0", (err) => {
-        console.log("T2S Started");
+        console.log("Transaction 4 Started");
+        str.concat("Transaction 4 Started\n");
         con3Clone.query("LOCK TABLE movies_post1980 WRITE", (err) => {
-            console.log("Node 3 Locked T2");
+            console.log("Node 3 Locked T4");
+            str.concat("Node 3 Locked T4\n")
             con3Clone.query("UPDATE movies_post1980 SET `rank`= `rank` + 1 WHERE id=1", (err) => {
                 con3Clone.commit((err) => {
-                    console.log("T2S Committed");
+                    console.log("T4 Committed");
+                    str.concat("T4 Committed\n");
                     con3Clone.query("UNLOCK TABLES", (err) => {
-                        console.log("Node 3 T2 Unlocked");
+                        console.log("Node 3 T4 Unlocked");
+                        str.concat("Node 3 T4 Unlocked\n");
                     })
                 })
             })
         })
     })
     con1Clone.query("SET autocommit = 0", (err) => {
-        console.log("T2 Started");
+        console.log("Transaction 3 Started");
+        str.concat("Transaction 3 Started\n")
         con1Clone.query("LOCK TABLE movies_all WRITE", (err) => {
-            console.log("Node 1 Locked T2");
+            console.log("Node 1 Locked T3");
+            str.concat("Node 1 Locked T3\n")
             con1Clone.query("UPDATE movies_all SET `rank`= `rank` + 1 WHERE id=1", (err, res) => { // rank is null before
                 con1Clone.commit((err) => {
-                    console.log("T2 Committed");
+                    console.log("T3 Committed");
+                    str.concat("T3 Committed\n")
                     con1Clone.query("UNLOCK TABLES", (err) => {
-                        console.log("Node 1 T2 Unlocked");
+                        console.log("Node 1 T3 Unlocked");
+                        str.concat("Node 1 T3 Unlocked\n");
                     })
                 })
             });
@@ -280,8 +325,10 @@ async function concurrencyTest3(option) {
         con1.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_all WHERE id = 1;", (err, res) => {
             if (res[0].rank == rank + 1) {
                 console.log("Node 1 pass", res[0].rank, rank + 1);
+                str.concat("Node 1 pass" + res[0].rank + " " + (rank+1)+"\n" );
             } else {
                 console.log("Node 1 fail", res[0].rank, rank + 1);
+                str.concat("Node 1 fail" + res[0].rank + " " + (rank+1)+"\n" );
             }
             con1.query("UNLOCK TABLES")
         })
@@ -291,13 +338,16 @@ async function concurrencyTest3(option) {
         con3.query("SELECT `id`, `name`, `year`, `rank`, genre, director FROM movies_post1980 WHERE id = 1;", (err, res) => {
             if (res[0].rank == rank + 1) {
                 console.log("Node 3 pass", res[0].rank, rank + 1);
+                str.concat("Node 3 pass" + res[0].rank + " " + (rank+1)+"\n" );
             } else {
                 console.log("Node 3 fail", res[0].rank, rank + 1);
-
+                str.concat("Node 3 fail" + res[0].rank + " " + (rank+1)+"\n" );
             }
             con3.query("UNLOCK TABLES")
         })
     })
+
+    return str;
     // con3Clone2.query("LOCK TABLE movies_post1980 WRITE", (err) => {
     //     if(err) throw err
     //     con3Clone2.beginTransaction((err) => {
@@ -334,11 +384,11 @@ async function runAllTests() {
         else if (i == 2) db.setAllIsolationLevel('repeatable read');
         else if (i == 3) db.setAllIsolationLevel('serializable');
         await sleep(5000);
-        await concurrencyTest1();
+        let t1 = await concurrencyTest1();
         // console.log("----");
-        // await concurrencyTest2(i);
+        let t2 = await concurrencyTest2(i);
         // console.log("----");
-        // await concurrencyTest3(i);
+        let t3 = await concurrencyTest3(i);
     }
 
 }
