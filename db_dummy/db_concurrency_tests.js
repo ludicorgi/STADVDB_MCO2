@@ -62,7 +62,7 @@ async function concurrencyTest1() {
                 if (err) throw err
                 con1Clone.query("SELECT `name`, `year`, `rank`, genre, director FROM final_movies_all WHERE name = ' boire';", (err, res) => {
                     if (err) throw err
-                    // console.log(res[0].rank);
+                    // console.log(res);
                     t2res = JSON.stringify(res);
                     con3Clone.query("SELECT `name`, `year`, `rank`, genre, director FROM final_movies_post1980 WHERE name = ' boire';", (err, res) => {
                         if (err) throw err
@@ -471,7 +471,7 @@ async function runAllTests(callback) {
     let t1 = "";
     let t2 = "";
     let t3 = "";
-    for (let i = 2; i < 4; i++) {
+    for (let i = 2; i < 3; i++) {
         if (i == 0) {
             db.setAllIsolationLevel('read uncommitted');
             t1 += "Read Uncommitted \n\n"
