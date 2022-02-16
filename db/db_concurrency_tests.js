@@ -366,10 +366,9 @@ async function concurrencyTest3(option) {
             con3.query("UNLOCK TABLES")
         })
     })
-    while(true){
-        if(c1&&c3){
-            return str;
-        }
+    await sleep(5000);
+    if (c1 && c3) {
+        return str;
     }
     // con3Clone2.query("LOCK TABLE final_movies_post1980 WRITE", (err) => {
     //     if(err) throw err
@@ -404,20 +403,20 @@ async function repeatedRead() {
                 // console.log(res);
                 t1res = res;
                 con1.query("DO SLEEP (4)", (err) => {
-                        console.log("T2:");
-                            con1.query("SELECT * FROM final_movies_all WHERE name = '$'", (err, res) => {
-                                // console.log(res);
-                                t2res = res;
-                                con1.commit((err) => {
-                                    con1.query("UNLOCK TABLES", (err) => {
-                                        console.log("");
-                                    })
-                                })
+                    console.log("T2:");
+                    con1.query("SELECT * FROM final_movies_all WHERE name = '$'", (err, res) => {
+                        // console.log(res);
+                        t2res = res;
+                        con1.commit((err) => {
+                            con1.query("UNLOCK TABLES", (err) => {
+                                console.log("");
                             })
                         })
                     })
                 })
             })
+        })
+    })
     await sleep(1000)
     con1Clone.query("SET autocommit = 0", (err) => {
         con1Clone.query("LOCK TABLE final_movies_all WRITE", (err) => {
@@ -434,14 +433,14 @@ async function repeatedRead() {
     console.log("RES: ", t1res, t2res);
 }
 
-async function dirtyRead(){
+async function dirtyRead() {
     con1.query("Set autocommit = 0", (err) => {
         con1.query("LOCK TABLE final_movies_all WRITE", (err) => {
-            con1.query("UPDATE final_movies_all SET `rank` = 2 WHERE name ='$'", (err )=> {
+            con1.query("UPDATE final_movies_all SET `rank` = 2 WHERE name ='$'", (err) => {
                 console.log("after update");
                 con1.query("DO SLEEP(4)", (err) => {
-                    con1.commit((err)=>{
-                        con1.query("UNLOCK TABLES", (err)=>{
+                    con1.commit((err) => {
+                        con1.query("UNLOCK TABLES", (err) => {
                             console.log("done");
                         })
                     })
@@ -454,8 +453,8 @@ async function dirtyRead(){
         con1Clone.query("LOCK TABLE final_movies_all READ", (err) => {
             con1Clone.query("SELECT * FROM final_movies_all WHERE name='$'", (err, res) => {
                 t2res = res;
-                con1Clone.commit((err)=>{
-                    con1Clone.query("UNLOCK TABLES", (err)=> {
+                con1Clone.commit((err) => {
+                    con1Clone.query("UNLOCK TABLES", (err) => {
                         console.log("read done");
                         console.log(t2res);
                     })
