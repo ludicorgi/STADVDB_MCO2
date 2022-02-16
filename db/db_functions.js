@@ -2384,8 +2384,8 @@ function recoverAll(){
                                     var old_genre = resultitem.old_genre;
                                     var old_director = resultitem.old_director;
                     
-                                    con1.query("LOCK TABLE new_recovery_log WRITE, movies_all WRITE", function(err1){
-                                        con3.query("LOCK TABLE new_recovery_log WRITE, movies_pre1980 WRITE", function(err2){
+                                    con1.query("LOCK TABLE new_recovery_log WRITE, final_movies_all WRITE", function(err1){
+                                        con3.query("LOCK TABLE new_recovery_log WRITE, final_movies_pre1980 WRITE", function(err2){
                                             con1.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
                                                     
                                                 //search for corresponding log entry in other node, if not found perform query
