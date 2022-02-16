@@ -1834,144 +1834,167 @@ function recoverPrimaryNodeFromNode3(){
 }
 
 function recoverAll(){
-    con1.query("LOCK TABLE new_recovery_log READ", function(err1){
-        con2.query("LOCK TABLE new_recovery_log READ", function(err2){
-            con3.query("LOCK TABLE new_recovery_low READ", function(err3){
-                //read con1 logs
-                con1.query("SELECT * from new_recovery_log;", function (err, results) {
-                    con1.query("UNLOCK TABLES", function (err1) {
-                        if (err1) throw err1;
-                    });
 
-                    results.forEach(resultitem => {
-                        var txnId = resultitem.transaction_id;
-                        var type = resultitem.type;
-                        var name = resultitem.name;
-                        var year = resultitem.year;
-                        var rank = resultitem.rank;
-                        var genre = resultitem.genre;
-                        var director = resultitem.director;
+    con1.query("SET autocommit=0", function(err){
+        con2.query("SET autocommit=0", function(err){
+            con3.query("SET autocommit=0", function(err){
 
-                        var old_name = resultitem.old_name;
-                        var old_year = resultitem.old_year;
-                        var old_genre = resultitem.old_genre;
-                        var old_director = resultitem.old_director;
-
-                        con1.query("LOCK TABLE new_recovery_log WRITE, movies_all WRITE", function(err1){
-                            con2.query("LOCK TABLE new_recovery_log WRITE, movies_pre1980 WRITE", function(err2){
-                                con3.query("LOCK TABLE new_recovery_log WRITE, movies_post1980 WRITE", function(err3){
-                                    if(resultitem.year < 1980){
-                                        con2.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
-                                            
-                                            //search for corresponding log entry in other node, if not found perform query
-                                            if(results.length == 0){ 
-                                                if(type == "INSERT"){
-                                                    con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
-                                                        con2.commit(function (err) {
-                                                            
-                                                            //remove from log
-                                                            con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
-                                                                con1.commit(function (err3) {
-                                                                    con1.query("UNLOCK TABLES", function(err1){
-                                                                        //console.log("node 1 unlocked");
-                                                                    });
-                                                                    con2.query("UNLOCK TABLES", function(err2){
-                                                                        //console.log("node 2 unlocked");
-                                                                    });
-                                                                    con3.query("UNLOCK TABLES", function(err2){
-                                                                        //console.log("node 3 unlocked");
-                                                                    });
-                                                                })
-                                                            }); 
-                                                        })
-                                                    });
-                                                }
-                                                else if(type == "UPDATE"){
-                                                    con2.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
-                                                        con2.commit(function (err2) {
-
-                                                            //remove from log
-                                                            con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
-                                                                con1.commit(function (err3) {
-                                                                    con1.query("UNLOCK TABLES", function(err1){
-                                                                        //console.log("node 1 unlocked");
-                                                                    });
-                                                                    con2.query("UNLOCK TABLES", function(err3){
-                                                                        //console.log("node 2 unlocked");
-                                                                    });
-                                                                    con3.query("UNLOCK TABLES", function(err2){
-                                                                        //console.log("node 3 unlocked");
+                con1.query("LOCK TABLE new_recovery_log READ", function(err1){
+                    con2.query("LOCK TABLE new_recovery_log READ", function(err2){
+                        con3.query("LOCK TABLE new_recovery_low READ", function(err3){
+                            //read con1 logs
+                            con1.query("SELECT * from new_recovery_log;", function (err, results) {
+                                con1.query("UNLOCK TABLES", function (err1) {
+                                    if (err1) throw err1;
+                                });
+            
+                                results.forEach(resultitem => {
+                                    var txnId = resultitem.transaction_id;
+                                    var type = resultitem.type;
+                                    var name = resultitem.name;
+                                    var year = resultitem.year;
+                                    var rank = resultitem.rank;
+                                    var genre = resultitem.genre;
+                                    var director = resultitem.director;
+            
+                                    var old_name = resultitem.old_name;
+                                    var old_year = resultitem.old_year;
+                                    var old_genre = resultitem.old_genre;
+                                    var old_director = resultitem.old_director;
+            
+                                    con1.query("LOCK TABLE new_recovery_log WRITE, movies_all WRITE", function(err1){
+                                        con2.query("LOCK TABLE new_recovery_log WRITE, movies_pre1980 WRITE", function(err2){
+                                            con3.query("LOCK TABLE new_recovery_log WRITE, movies_post1980 WRITE", function(err3){
+                                                if(resultitem.year < 1980){
+                                                    con2.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
+                                                        
+                                                        //search for corresponding log entry in other node, if not found perform query
+                                                        if(results.length == 0){ 
+                                                            if(type == "INSERT"){
+                                                                con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
+                                                                    con2.commit(function (err) {
+                                                                        
+                                                                        //remove from log
+                                                                        con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
+                                                                            con1.commit(function (err3) {
+                                                                                con1.query("UNLOCK TABLES", function(err1){
+                                                                                    //console.log("node 1 unlocked");
+                                                                                });
+                                                                                con2.query("UNLOCK TABLES", function(err2){
+                                                                                    //console.log("node 2 unlocked");
+                                                                                });
+                                                                                con3.query("UNLOCK TABLES", function(err2){
+                                                                                    //console.log("node 3 unlocked");
+                                                                                });
+                                                                            })
+                                                                        }); 
+                                                                    })
+                                                                });
+                                                            }
+                                                            else if(type == "UPDATE"){
+                                                                con2.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
+                                                                    con2.commit(function (err2) {
+            
+                                                                        //remove from log
+                                                                        con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
+                                                                            con1.commit(function (err3) {
+                                                                                con1.query("UNLOCK TABLES", function(err1){
+                                                                                    //console.log("node 1 unlocked");
+                                                                                });
+                                                                                con2.query("UNLOCK TABLES", function(err3){
+                                                                                    //console.log("node 2 unlocked");
+                                                                                });
+                                                                                con3.query("UNLOCK TABLES", function(err2){
+                                                                                    //console.log("node 3 unlocked");
+                                                                                });
+                                                                            });
+                                                                        });
                                                                     });
                                                                 });
-                                                            });
-                                                        });
-                                                    });
-                                                }
-                                            }
-                                            else{
-                                                con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
-                                                    con1.commit(function (err1) {
-                                                        con1.query("UNLOCK TABLES", function(err1){
-                                                            //console.log("node 1 unlocked");
-                                                        });
-                                                        con2.query("UNLOCK TABLES", function(err3){
-                                                            //console.log("node 2 unlocked");
-                                                        });
-                                                        con3.query("UNLOCK TABLES", function(err2){
-                                                            //console.log("node 3 unlocked");
-                                                        });
-                                                    })
-                                                });
-
-                                                con2.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
-                                                    con1.commit(function (err2) {
-                                                        con1.query("UNLOCK TABLES", function(err1){
-                                                            //console.log("node 1 unlocked");
-                                                        });
-                                                        con2.query("UNLOCK TABLES", function(err3){
-                                                            //console.log("node 2 unlocked");
-                                                        });
-                                                        con3.query("UNLOCK TABLES", function(err2){
-                                                            //console.log("node 3 unlocked");
-                                                        });
-                                                    })
-                                                });
-                                            }
-                                        });
-                                    }
-                                    else if(resultitem.year >= 1980){
-                                        con3.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
-                                            
-                                            //search for corresponding log entry in other node, if not found perform query
-                                            if(results.length == 0){ 
-                                                if(type == "INSERT"){
-                                                    con3.query("INSERT INTO final_movies_post1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
-                                                        con3.commit(function (err) {
-                                                            
-                                                            //remove from log
-                                                            con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
-                                                                con1.commit(function (err3) {
+                                                            }
+                                                        }
+                                                        else{
+                                                            con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
+                                                                con1.commit(function (err1) {
                                                                     con1.query("UNLOCK TABLES", function(err1){
                                                                         //console.log("node 1 unlocked");
-                                                                    })
+                                                                    });
                                                                     con2.query("UNLOCK TABLES", function(err3){
                                                                         //console.log("node 2 unlocked");
                                                                     });
                                                                     con3.query("UNLOCK TABLES", function(err2){
                                                                         //console.log("node 3 unlocked");
-                                                                    })
+                                                                    });
                                                                 })
-                                                            }); 
-                                                        })
+                                                            });
+            
+                                                            con2.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
+                                                                con1.commit(function (err2) {
+                                                                    con1.query("UNLOCK TABLES", function(err1){
+                                                                        //console.log("node 1 unlocked");
+                                                                    });
+                                                                    con2.query("UNLOCK TABLES", function(err3){
+                                                                        //console.log("node 2 unlocked");
+                                                                    });
+                                                                    con3.query("UNLOCK TABLES", function(err2){
+                                                                        //console.log("node 3 unlocked");
+                                                                    });
+                                                                })
+                                                            });
+                                                        }
                                                     });
                                                 }
-                                                else if(type == "UPDATE"){
-                                                    con3.query("UPDATE final_movies_post1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
-                                                        con3.commit(function (err2) {
-
-                                                            //remove from log
-                                                            con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
-                                                                con1.commit(function (err3) {
+                                                else if(resultitem.year >= 1980){
+                                                    con3.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
+                                                        
+                                                        //search for corresponding log entry in other node, if not found perform query
+                                                        if(results.length == 0){ 
+                                                            if(type == "INSERT"){
+                                                                con3.query("INSERT INTO final_movies_post1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
+                                                                    con3.commit(function (err) {
+                                                                        
+                                                                        //remove from log
+                                                                        con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
+                                                                            con1.commit(function (err3) {
+                                                                                con1.query("UNLOCK TABLES", function(err1){
+                                                                                    //console.log("node 1 unlocked");
+                                                                                })
+                                                                                con2.query("UNLOCK TABLES", function(err3){
+                                                                                    //console.log("node 2 unlocked");
+                                                                                });
+                                                                                con3.query("UNLOCK TABLES", function(err2){
+                                                                                    //console.log("node 3 unlocked");
+                                                                                })
+                                                                            })
+                                                                        }); 
+                                                                    })
+                                                                });
+                                                            }
+                                                            else if(type == "UPDATE"){
+                                                                con3.query("UPDATE final_movies_post1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
+                                                                    con3.commit(function (err2) {
+            
+                                                                        //remove from log
+                                                                        con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
+                                                                            con1.commit(function (err3) {
+                                                                                con1.query("UNLOCK TABLES", function(err1){
+                                                                                    //console.log("node 1 unlocked");
+                                                                                });
+                                                                                con2.query("UNLOCK TABLES", function(err3){
+                                                                                    //console.log("node 2 unlocked");
+                                                                                });
+                                                                                con3.query("UNLOCK TABLES", function(err3){
+                                                                                    //console.log("node 3 unlocked");
+                                                                                });
+                                                                            });
+                                                                        });
+                                                                    });
+                                                                });
+                                                            }
+                                                        }
+                                                        else{
+                                                            con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
+                                                                con1.commit(function (err1) {
                                                                     con1.query("UNLOCK TABLES", function(err1){
                                                                         //console.log("node 1 unlocked");
                                                                     });
@@ -1981,233 +2004,218 @@ function recoverAll(){
                                                                     con3.query("UNLOCK TABLES", function(err3){
                                                                         //console.log("node 3 unlocked");
                                                                     });
+                                                                })
+                                                            });
+            
+                                                            con3.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
+                                                                con1.commit(function (err2) {
+                                                                    con1.query("UNLOCK TABLES", function(err1){
+                                                                        //console.log("node 1 unlocked");
+                                                                    });
+                                                                    con2.query("UNLOCK TABLES", function(err3){
+                                                                        //console.log("node 2 unlocked");
+                                                                    });
+                                                                    con3.query("UNLOCK TABLES", function(err3){
+                                                                        //console.log("node 3 unlocked");
+                                                                    });
+                                                                })
+                                                            });
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    });
+                                });
+                            })
+            
+                            con2.query("SELECT * from new_recovery_log;", function (err, results) {
+                                con2.query("UNLOCK TABLES", function (err2) {
+                                    if (err2) throw err2;
+                                });
+                    
+                                results.forEach(resultitem => {
+                                    var txnId = resultitem.transaction_id;
+                                    var type = resultitem.type;
+                                    var name = resultitem.name;
+                                    var year = resultitem.year;
+                                    var rank = resultitem.rank;
+                                    var genre = resultitem.genre;
+                                    var director = resultitem.director;
+                    
+                                    var old_name = resultitem.old_name;
+                                    var old_year = resultitem.old_year;
+                                    var old_genre = resultitem.old_genre;
+                                    var old_director = resultitem.old_director;
+                    
+                                    con1.query("LOCK TABLE new_recovery_log WRITE, movies_all WRITE", function(err1){
+                                        con2.query("LOCK TABLE new_recovery_log WRITE, movies_pre1980 WRITE", function(err2){
+                                            con1.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
+                                                    
+                                                //search for corresponding log entry in other node, if not found perform query
+                                                if(results.length == 0){ 
+                                                    if(type == "INSERT"){
+                                                        con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
+                                                            con1.commit(function (err) {
+                                                                
+                                                                //remove from log
+                                                                con2.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
+                                                                    con2.commit(function (err3) {
+                                                                        con1.query("UNLOCK TABLES", function(err1){
+                                                                            //console.log("node 1 unlocked");
+                                                                        });
+                                                                        con2.query("UNLOCK TABLES", function(err2){
+                                                                            //console.log("node 2 unlocked");
+                                                                        });
+                                                                    })
+                                                                }); 
+                                                            })
+                                                        });
+                                                    }
+                                                    else if(type == "UPDATE"){
+                                                        con1.query("UPDATE final_movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
+                                                            con1.commit(function (err1) {
+                    
+                                                                //remove from log
+                                                                con2.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
+                                                                    con1.commit(function (err3) {
+                                                                        con1.query("UNLOCK TABLES", function(err1){
+                                                                            //console.log("node 1 unlocked");
+                                                                        });
+                                                                        con2.query("UNLOCK TABLES", function(err3){
+                                                                            //console.log("node 2 unlocked");
+                                                                        });
+                                                                    });
                                                                 });
                                                             });
                                                         });
-                                                    });
+                                                    }
                                                 }
-                                            }
-                                            else{
-                                                con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
-                                                    con1.commit(function (err1) {
-                                                        con1.query("UNLOCK TABLES", function(err1){
-                                                            //console.log("node 1 unlocked");
-                                                        });
-                                                        con2.query("UNLOCK TABLES", function(err3){
-                                                            //console.log("node 2 unlocked");
-                                                        });
-                                                        con3.query("UNLOCK TABLES", function(err3){
-                                                            //console.log("node 3 unlocked");
-                                                        });
-                                                    })
-                                                });
-
-                                                con3.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
-                                                    con1.commit(function (err2) {
-                                                        con1.query("UNLOCK TABLES", function(err1){
-                                                            //console.log("node 1 unlocked");
-                                                        });
-                                                        con2.query("UNLOCK TABLES", function(err3){
-                                                            //console.log("node 2 unlocked");
-                                                        });
-                                                        con3.query("UNLOCK TABLES", function(err3){
-                                                            //console.log("node 3 unlocked");
-                                                        });
-                                                    })
-                                                });
-                                            }
-                                        });
-                                    }
-                                });
-                            });
-                        });
-                    });
-                })
-
-                con2.query("SELECT * from new_recovery_log;", function (err, results) {
-                    con2.query("UNLOCK TABLES", function (err2) {
-                        if (err2) throw err2;
-                    });
-        
-                    results.forEach(resultitem => {
-                        var txnId = resultitem.transaction_id;
-                        var type = resultitem.type;
-                        var name = resultitem.name;
-                        var year = resultitem.year;
-                        var rank = resultitem.rank;
-                        var genre = resultitem.genre;
-                        var director = resultitem.director;
-        
-                        var old_name = resultitem.old_name;
-                        var old_year = resultitem.old_year;
-                        var old_genre = resultitem.old_genre;
-                        var old_director = resultitem.old_director;
-        
-                        con1.query("LOCK TABLE new_recovery_log WRITE, movies_all WRITE", function(err1){
-                            con2.query("LOCK TABLE new_recovery_log WRITE, movies_pre1980 WRITE", function(err2){
-                                con1.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
-                                        
-                                    //search for corresponding log entry in other node, if not found perform query
-                                    if(results.length == 0){ 
-                                        if(type == "INSERT"){
-                                            con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
-                                                con1.commit(function (err) {
-                                                    
-                                                    //remove from log
-                                                    con2.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
-                                                        con2.commit(function (err3) {
-                                                            con1.query("UNLOCK TABLES", function(err1){
-                                                                //console.log("node 1 unlocked");
-                                                            });
-                                                            con2.query("UNLOCK TABLES", function(err2){
-                                                                //console.log("node 2 unlocked");
-                                                            });
-                                                        })
-                                                    }); 
-                                                })
-                                            });
-                                        }
-                                        else if(type == "UPDATE"){
-                                            con1.query("UPDATE final_movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
-                                                con1.commit(function (err1) {
-        
-                                                    //remove from log
-                                                    con2.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
-                                                        con1.commit(function (err3) {
+                                                else{
+                                                    con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
+                                                        con1.commit(function (err1) {
                                                             con1.query("UNLOCK TABLES", function(err1){
                                                                 //console.log("node 1 unlocked");
                                                             });
                                                             con2.query("UNLOCK TABLES", function(err3){
                                                                 //console.log("node 2 unlocked");
                                                             });
-                                                        });
+                                                        })
                                                     });
-                                                });
-                                            });
-                                        }
-                                    }
-                                    else{
-                                        con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
-                                            con1.commit(function (err1) {
-                                                con1.query("UNLOCK TABLES", function(err1){
-                                                    //console.log("node 1 unlocked");
-                                                });
-                                                con2.query("UNLOCK TABLES", function(err3){
-                                                    //console.log("node 2 unlocked");
-                                                });
-                                            })
-                                        });
-        
-                                        con2.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
-                                            con1.commit(function (err2) {
-                                                con1.query("UNLOCK TABLES", function(err1){
-                                                    //console.log("node 1 unlocked");
-                                                });
-                                                con2.query("UNLOCK TABLES", function(err3){
-                                                    //console.log("node 2 unlocked");
-                                                });
-                                            })
-                                        });
-                                    }
-                                });
-                            });
-                        });
-                    });
-                });
-
-                con3.query("SELECT * from new_recovery_log;", function (err, results) {
-                    con3.query("UNLOCK TABLES", function (err2) {
-                        if (err2) throw err2;
-                    });
-        
-                    results.forEach(resultitem => {
-                        var txnId = resultitem.transaction_id;
-                        var type = resultitem.type;
-                        var name = resultitem.name;
-                        var year = resultitem.year;
-                        var rank = resultitem.rank;
-                        var genre = resultitem.genre;
-                        var director = resultitem.director;
-        
-                        var old_name = resultitem.old_name;
-                        var old_year = resultitem.old_year;
-                        var old_genre = resultitem.old_genre;
-                        var old_director = resultitem.old_director;
-        
-                        con1.query("LOCK TABLE new_recovery_log WRITE, movies_all WRITE", function(err1){
-                            con3.query("LOCK TABLE new_recovery_log WRITE, movies_pre1980 WRITE", function(err2){
-                                con1.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
-                                        
-                                    //search for corresponding log entry in other node, if not found perform query
-                                    if(results.length == 0){ 
-                                        if(type == "INSERT"){
-                                            con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
-                                                con1.commit(function (err) {
-                                                    
-                                                    //remove from log
-                                                    con3.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
-                                                        con3.commit(function (err3) {
+                    
+                                                    con2.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
+                                                        con1.commit(function (err2) {
                                                             con1.query("UNLOCK TABLES", function(err1){
                                                                 //console.log("node 1 unlocked");
                                                             });
-                                                            con3.query("UNLOCK TABLES", function(err2){
-                                                                //console.log("node 3 unlocked");
+                                                            con2.query("UNLOCK TABLES", function(err3){
+                                                                //console.log("node 2 unlocked");
                                                             });
                                                         })
-                                                    }); 
-                                                })
+                                                    });
+                                                }
                                             });
-                                        }
-                                        else if(type == "UPDATE"){
-                                            con1.query("UPDATE final_movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
-                                                con1.commit(function (err1) {
-        
-                                                    //remove from log
-                                                    con3.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
-                                                        con1.commit(function (err3) {
+                                        });
+                                    });
+                                });
+                            });
+            
+                            con3.query("SELECT * from new_recovery_log;", function (err, results) {
+                                con3.query("UNLOCK TABLES", function (err2) {
+                                    if (err2) throw err2;
+                                });
+                    
+                                results.forEach(resultitem => {
+                                    var txnId = resultitem.transaction_id;
+                                    var type = resultitem.type;
+                                    var name = resultitem.name;
+                                    var year = resultitem.year;
+                                    var rank = resultitem.rank;
+                                    var genre = resultitem.genre;
+                                    var director = resultitem.director;
+                    
+                                    var old_name = resultitem.old_name;
+                                    var old_year = resultitem.old_year;
+                                    var old_genre = resultitem.old_genre;
+                                    var old_director = resultitem.old_director;
+                    
+                                    con1.query("LOCK TABLE new_recovery_log WRITE, movies_all WRITE", function(err1){
+                                        con3.query("LOCK TABLE new_recovery_log WRITE, movies_pre1980 WRITE", function(err2){
+                                            con1.query("SELECT * from new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err, results){
+                                                    
+                                                //search for corresponding log entry in other node, if not found perform query
+                                                if(results.length == 0){ 
+                                                    if(type == "INSERT"){
+                                                        con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err) {
+                                                            con1.commit(function (err) {
+                                                                
+                                                                //remove from log
+                                                                con3.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
+                                                                    con3.commit(function (err3) {
+                                                                        con1.query("UNLOCK TABLES", function(err1){
+                                                                            //console.log("node 1 unlocked");
+                                                                        });
+                                                                        con3.query("UNLOCK TABLES", function(err2){
+                                                                            //console.log("node 3 unlocked");
+                                                                        });
+                                                                    })
+                                                                }); 
+                                                            })
+                                                        });
+                                                    }
+                                                    else if(type == "UPDATE"){
+                                                        con1.query("UPDATE final_movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err) {
+                                                            con1.commit(function (err1) {
+                    
+                                                                //remove from log
+                                                                con3.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err){
+                                                                    con1.commit(function (err3) {
+                                                                        con1.query("UNLOCK TABLES", function(err1){
+                                                                            //console.log("node 1 unlocked");
+                                                                        });
+                                                                        con3.query("UNLOCK TABLES", function(err3){
+                                                                            //console.log("node 3 unlocked");
+                                                                        });
+                                                                    });
+                                                                });
+                                                            });
+                                                        });
+                                                    }
+                                                }
+                                                else{
+                                                    con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
+                                                        con1.commit(function (err1) {
                                                             con1.query("UNLOCK TABLES", function(err1){
                                                                 //console.log("node 1 unlocked");
                                                             });
                                                             con3.query("UNLOCK TABLES", function(err3){
                                                                 //console.log("node 3 unlocked");
                                                             });
-                                                        });
+                                                        })
                                                     });
-                                                });
+                    
+                                                    con3.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
+                                                        con1.commit(function (err2) {
+                                                            con1.query("UNLOCK TABLES", function(err1){
+                                                                //console.log("node 1 unlocked");
+                                                            });
+                                                            con3.query("UNLOCK TABLES", function(err3){
+                                                                //console.log("node 3 unlocked");
+                                                            });
+                                                        })
+                                                    });
+                                                }
                                             });
-                                        }
-                                    }
-                                    else{
-                                        con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(er1r){
-                                            con1.commit(function (err1) {
-                                                con1.query("UNLOCK TABLES", function(err1){
-                                                    //console.log("node 1 unlocked");
-                                                });
-                                                con3.query("UNLOCK TABLES", function(err3){
-                                                    //console.log("node 3 unlocked");
-                                                });
-                                            })
                                         });
-        
-                                        con3.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
-                                            con1.commit(function (err2) {
-                                                con1.query("UNLOCK TABLES", function(err1){
-                                                    //console.log("node 1 unlocked");
-                                                });
-                                                con3.query("UNLOCK TABLES", function(err3){
-                                                    //console.log("node 3 unlocked");
-                                                });
-                                            })
-                                        });
-                                    }
+                                    });
                                 });
                             });
                         });
                     });
                 });
-            });
-        });
-    });
+            })
+        })
+    })
 }
 
 function closeAllConnection() {
