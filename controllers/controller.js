@@ -1,5 +1,5 @@
-const db = require('../db_dummy/db_functions');
-const demo = require('../db_dummy/db_concurrency_tests');
+const db = require('../db/db_functions');
+const demo = require('../db/db_concurrency_tests');
 const search = db.newSearch;
 const update = db.reallyNewUpdate;
 const insert = db.reallyNewInsert;
