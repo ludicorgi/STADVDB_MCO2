@@ -81,7 +81,7 @@ async function concurrencyTest1() {
     })
 
 
-    await sleep(5000);
+    await sleep(2000);
     if (t1res == fixedRes && t2res == fixedRes && t1res2 == t1res && t2res2 == t1res2) {
         console.log("Pass", [fixedRes, t1res, t2res, t1res2, t2res2]);
         // console.log(str);
