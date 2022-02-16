@@ -337,9 +337,11 @@ async function concurrencyTest3(option) {
             });
         });
     });
-    await sleep(12000)
+    await sleep(10000)
+    let c1, c3;
     con1.query("LOCK TABLES final_movies_all READ", (err) => {
         con1.query("SELECT `name`, `year`, `rank`, genre, director FROM final_movies_all WHERE name = ' boire';", (err, res) => {
+            c1 = true;
             if (res[0].rank == rank + 1) {
                 console.log("Node 1 pass", res[0].rank, rank + 1);
                 str += ("Node 1 pass" + res[0].rank + " " + (rank + 1) + "\n");
@@ -353,6 +355,7 @@ async function concurrencyTest3(option) {
 
     con3.query("LOCK TABLES final_movies_post1980 READ", (err) => {
         con3.query("SELECT `name`, `year`, `rank`, genre, director FROM final_movies_post1980 WHERE name = ' boire'", (err, res) => {
+            c3 = true;
             if (res[0].rank == rank + 1) {
                 console.log("Node 3 pass", res[0].rank, rank + 1);
                 str += ("Node 3 pass" + res[0].rank + " " + (rank + 1) + "\n");
@@ -363,8 +366,11 @@ async function concurrencyTest3(option) {
             con3.query("UNLOCK TABLES")
         })
     })
-
-    return (str);
+    while(true){
+        if(c1&&c3){
+            return str;
+        }
+    }
     // con3Clone2.query("LOCK TABLE final_movies_post1980 WRITE", (err) => {
     //     if(err) throw err
     //     con3Clone2.beginTransaction((err) => {
