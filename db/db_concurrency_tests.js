@@ -90,6 +90,7 @@ async function concurrencyTest1() {
         return (str);
     } else {
         console.log("Fail", [fixedRes, t1res, t2res, t1res2, t2res2]);
+        return str;
     }
     // console.log(t1res);
 
