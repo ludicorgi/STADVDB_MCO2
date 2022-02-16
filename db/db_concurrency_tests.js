@@ -360,7 +360,6 @@ async function concurrencyTest3(option) {
             con3.query("UNLOCK TABLES")
         })
     })
-    await sleep(5000);
     return str;
 
     // con3Clone2.query("LOCK TABLE final_movies_post1980 WRITE", (err) => {
