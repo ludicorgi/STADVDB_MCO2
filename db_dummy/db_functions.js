@@ -2083,7 +2083,13 @@ function recoverAll(){
             return con1.rollback(function () {});
         }
         con2.query("SET autocommit=0", function(err2){
+            if (err2) {
+                return con2.rollback(function () {});
+            }
             con3.query("SET autocommit=0", function(err3){
+                if (err3) {
+                    return con3.rollback(function () {});
+                }
                 con1.query("LOCK TABLE new_recovery_log READ", function(err1){
                     if (err1) {
                         return con1.rollback(function () {
@@ -2305,11 +2311,11 @@ function recoverAll(){
                                                                         });
                                                                     });
                                                                 }
-                                                                con1.commit(function (err1) {
-                                                                    if (err1) {
-                                                                        return con1.rollback(function () {
-                                                                            con1.query("UNLOCK TABLES", function(){
-                                                                                throw err1;
+                                                                con2.commit(function (err2) {
+                                                                    if (err2) {
+                                                                        return con2.rollback(function () {
+                                                                            con2.query("UNLOCK TABLES", function(){
+                                                                                throw err2;
                                                                             });
                                                                         });
                                                                     }
@@ -2472,11 +2478,11 @@ function recoverAll(){
                                                                         })
                                                                     });
                                                                 }
-                                                                con1.commit(function (err1) {
-                                                                    if (err1) {
-                                                                        return con1.rollback(function () {
-                                                                            con1.query("UNLOCK TABLES", function(){
-                                                                                throw err1;
+                                                                con3.commit(function (err3) {
+                                                                    if (err3) {
+                                                                        return con3.rollback(function () {
+                                                                            con3.query("UNLOCK TABLES", function(){
+                                                                                throw err3;
                                                                             });
                                                                         });
                                                                     }
@@ -2617,10 +2623,10 @@ function recoverAll(){
                                                                             });
                                                                         });
                                                                     }
-                                                                    con1.commit(function (err1) {
-                                                                        if (err1) {
-                                                                            return con1.rollback(function () {
-                                                                                con1.query("UNLOCK TABLES", function(){
+                                                                    con2.commit(function (err2) {
+                                                                        if (err2) {
+                                                                            return con2.rollback(function () {
+                                                                                con2.query("UNLOCK TABLES", function(){
                                                                                     throw err1;
                                                                                 });
                                                                             });
@@ -2671,7 +2677,7 @@ function recoverAll(){
                                                                 });
                                                             });
                                                         }
-                                                        con1.commit(function (err1) {
+                                                        con2.commit(function (err1) {
                                                             if (err1) {
                                                                 return con1.rollback(function () {
                                                                     con1.query("UNLOCK TABLES", function(){
@@ -2695,6 +2701,13 @@ function recoverAll(){
                             });
             
                             con3.query("SELECT * from new_recovery_log;", function (err3, results) {
+                                if (err3) {
+                                    return con3.rollback(function () {
+                                        con3.query("UNLOCK TABLES", function(){
+                                            throw err3;
+                                        })
+                                    });
+                                }
                                 con3.query("UNLOCK TABLES", function (err2) {
                                     if (err2) throw err2;
                                 });
@@ -2722,7 +2735,7 @@ function recoverAll(){
                                                 });
                                             });
                                         }
-                                        con3.query("LOCK TABLE new_recovery_log WRITE, final_movies_pre1980 WRITE", function(err3){
+                                        con3.query("LOCK TABLE new_recovery_log WRITE, final_movies_post1980 WRITE", function(err3){
                                             if (err3) {
                                                 return con3.rollback(function () {
                                                     con3.query("UNLOCK TABLES", function(){
@@ -2811,10 +2824,10 @@ function recoverAll(){
                                                                             })
                                                                         });
                                                                     }
-                                                                    con1.commit(function (err1) {
-                                                                        if (err1) {
-                                                                            return con1.rollback(function () {
-                                                                                con1.query("UNLOCK TABLES", function(){
+                                                                    con3.commit(function (err3) {
+                                                                        if (err3) {
+                                                                            return con3.rollback(function () {
+                                                                                con3.query("UNLOCK TABLES", function(){
                                                                                     throw err1;
                                                                                 });
                                                                             });
@@ -2865,10 +2878,10 @@ function recoverAll(){
                                                                 })
                                                             });
                                                         }
-                                                        con1.commit(function (err1) {
-                                                            if (err1) {
-                                                                return con1.rollback(function () {
-                                                                    con1.query("UNLOCK TABLES", function(){
+                                                        con3.commit(function (err3) {
+                                                            if (err3) {
+                                                                return con3.rollback(function () {
+                                                                    con3.query("UNLOCK TABLES", function(){
                                                                         throw err1;
                                                                     });
                                                                 });
