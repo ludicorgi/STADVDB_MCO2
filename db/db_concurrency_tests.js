@@ -1,4 +1,4 @@
-const db = require('./db_functions_test');
+const db = require('./db_functions');
 const connections = require('./db_connections');
 const con1 = connections.con1;
 const con2 = connections.con2;

@@ -2477,5 +2477,38 @@ function closeAllConnection() {
         console.log("Closed connection " + 3);
     });
 }
-module.exports = { newSearch, reallyNewUpdate, reallyNewInsert, closeAllConnection, generateAllReports, InsertSimulatePrimaryError, InsertSimulateReplicaError, recoverAll};
+function setAllIsolationLevel(isolationLevel) {
+    setIsolationLevel(con1, isolationLevel);
+    setIsolationLevel(con2, isolationLevel);
+    setIsolationLevel(con3, isolationLevel);
+    setIsolationLevel(connections.con1Clone, isolationLevel);
+    setIsolationLevel(connections.con2Clone, isolationLevel);
+    setIsolationLevel(connections.con3Clone, isolationLevel);
+}
+
+function setIsolationLevel(con, isolationLevel) {
+    isolationLevel = isolationLevel.toLowerCase();
+    if (isolationLevel == 'read uncommitted') {
+        con.query('SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;', (err) => {
+            console.log("READ UNCOMMITTED");
+            if (err) throw err;
+        })
+    } else if (isolationLevel == 'read committed') {
+        con.query('SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;', (err) => {
+            console.log("READ COMMITTED");
+            if (err) throw err;
+        })
+    } else if (isolationLevel == 'repeatable read') {
+        con.query('SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;', (err) => {
+            console.log("REPEATABLE READ");
+            if (err) throw err;
+        })
+    } else if (isolationLevel == 'serializable') {
+        con.query('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;', (err) => {
+            console.log("SERIALIZABLE");
+            if (err) throw err;
+        })
+    }
+}
+module.exports = { newSearch, reallyNewUpdate, reallyNewInsert, closeAllConnection, generateAllReports, InsertSimulatePrimaryError, InsertSimulateReplicaError, recoverAll, setAllIsolationLevel, setIsolationLevel};
 // module.exports = { closeConnection, searchRecord, insertOneRecordIntoAllNodes };
