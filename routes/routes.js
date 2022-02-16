@@ -15,7 +15,7 @@ app.post('/add_movie', controller.addMovie);
 app.post('/edit_movie', controller.editMovie);
 
 // End Connection
-app.get('/end_connections', controller.endConnection);
+// app.get('/end_connections', controller.endConnection);
 
 // Generate Reports
 app.get('/generate_reports', controller.generateReports);

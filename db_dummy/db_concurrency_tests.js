@@ -388,6 +388,80 @@ async function concurrencyTest3(option) {
 
 }
 
+async function repeatedRead() {
+    let t1res, t2res;
+
+    con1.query("SET autocommit = 0", (err) => {
+        console.log("T1:");
+        con1.query("LOCK TABLE final_movies_all READ", (err) => {
+            con1.query("SELECT * FROM final_movies_all WHERE name = '$'", (err, res) => {
+                // console.log(res);
+                t1res = res;
+                con1.query("DO SLEEP (4)", (err) => {
+                        console.log("T2:");
+                            con1.query("SELECT * FROM final_movies_all WHERE name = '$'", (err, res) => {
+                                // console.log(res);
+                                t2res = res;
+                                con1.commit((err) => {
+                                    con1.query("UNLOCK TABLES", (err) => {
+                                        console.log("");
+                                    })
+                                })
+                            })
+                        })
+                    })
+                })
+            })
+    await sleep(1000)
+    con1Clone.query("SET autocommit = 0", (err) => {
+        con1Clone.query("LOCK TABLE final_movies_all WRITE", (err) => {
+            con1Clone.query("UPDATE final_movies_all SET `rank` = 6.4 WHERE name ='$'", (err) => {
+                con1Clone.commit((err) => {
+                    con1Clone.query("UNLOCK TABLES", (err) => {
+                        console.log("done");
+                    })
+                })
+            })
+        })
+    })
+    await sleep(5000)
+    console.log("RES: ", t1res, t2res);
+}
+
+async function dirtyRead(){
+    con1.query("Set autocommit = 0", (err) => {
+        con1.query("LOCK TABLE final_movies_all WRITE", (err) => {
+            con1.query("UPDATE final_movies_all SET `rank` = 2 WHERE name ='$'", (err )=> {
+                console.log("after update");
+                con1.query("DO SLEEP(4)", (err) => {
+                    con1.commit((err)=>{
+                        con1.query("UNLOCK TABLES", (err)=>{
+                            console.log("done");
+                        })
+                    })
+                })
+            })
+        })
+    })
+    await sleep(1000)
+    con1Clone.query("SET autocommit = 0", (err) => {
+        con1Clone.query("LOCK TABLE final_movies_all READ", (err) => {
+            con1Clone.query("SELECT * FROM final_movies_all WHERE name='$'", (err, res) => {
+                t2res = res;
+                con1Clone.commit((err)=>{
+                    con1Clone.query("UNLOCK TABLES", (err)=> {
+                        console.log("read done");
+                        console.log(t2res);
+                    })
+                })
+            })
+        })
+    })
+}
+
+// repeatedRead();
+dirtyRead();
+
 function sleep(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
@@ -413,28 +487,28 @@ async function runAllTests(callback) {
             t1 += "Repeatable Read \n\n"
             t2 += "Repeatable Read \n\n"
             t3 += "Repeatable Read \n\n"
-        } else if (i == 3){
+        } else if (i == 3) {
             db.setAllIsolationLevel('serializable');
             t1 += "Serializable \n\n"
             t2 += "Serializable \n\n"
             t3 += "Serializable \n\n"
         }
-    // await sleep(5000);
-    t1r = await concurrencyTest1();
-    t1 += t1r;
-    console.log("----");
-    t2r = await concurrencyTest2();
-    t2 += t2r;
-    console.log("----");
-    t3r = await concurrencyTest3();
-    t3 += t3r;
-}
-// console.log("T1 Log: ", t1);
-// console.log("T2 Log: ", t2);
-// console.log("T3 Log: ", t3);
-let res = [t1, t2, t3]
-// console.log("res: ",res.length);
-callback(res);
+        // await sleep(5000);
+        t1r = await concurrencyTest1();
+        t1 += t1r;
+        console.log("----");
+        t2r = await concurrencyTest2();
+        t2 += t2r;
+        console.log("----");
+        t3r = await concurrencyTest3();
+        t3 += t3r;
+    }
+    // console.log("T1 Log: ", t1);
+    // console.log("T2 Log: ", t2);
+    // console.log("T3 Log: ", t3);
+    let res = [t1, t2, t3]
+    // console.log("res: ",res.length);
+    callback(res);
 }
 
 async function testSearch() {
