@@ -123,34 +123,57 @@ function newSearch(field, value, callback) {
                 };
             } else {
                 // field is not year
-                con2.query("SET autocommit = 0", function (err2) {
-                    if (err2) throw err2;
+                con2.query("SET autocommit = 0", function (err) {
+                    if (err) {
+                        return con2.rollback(() => {
+                            con2.query("UNLOCK TABLES", () => {
+                                // closeConnection(con1)
+                                throw err;
+                            })
+                        });
+                    }
                     else {
                         // transaction began
                         con2.query("LOCK TABLES final_movies_pre1980 READ", (err) => {
-                            if (err) throw err;
+                            if (err) {
+                                return con2.rollback(() => {
+                                    con2.query("UNLOCK TABLES", () => {
+                                        // closeConnection(con1)
+                                        throw err;
+                                    })
+                                });
+                            }
                             else {
                                 // locking successful
                                 con2.query(queryNode2, values, (err, res) => {
                                     if (err) {
-                                        con2.rollback((err) => {
-                                            if (err) throw err;
-                                            //closeconnection(con2);
+                                        return con2.rollback(() => {
+                                            con2.query("UNLOCK TABLES", () => {
+                                                // closeConnection(con1)
+                                                throw err;
+                                            })
                                         });
                                     } else if (res.length > 0) {
                                         // result is in node
                                         con2.commit((err) => {
                                             if (err) {
-                                                con2.rollback((err) => {
-                                                    if (err) throw err;
-                                                    //closeconnection(con2);
+                                                return con2.rollback(() => {
+                                                    con2.query("UNLOCK TABLES", () => {
+                                                        // closeConnection(con1)
+                                                        throw err;
+                                                    })
                                                 });
                                             } else {
                                                 // unlock successful
                                                 con2.query("UNLOCK TABLES", (err) => {
-                                                    if (err) con2.rollback((err) => {
-                                                        if (err) throw err;
-                                                    });
+                                                    if (err) {
+                                                        return con2.rollback(() => {
+                                                            con2.query("UNLOCK TABLES", () => {
+                                                                // closeConnection(con1)
+                                                                throw err;
+                                                            })
+                                                        });
+                                                    }
                                                     //closeconnection(con2)
                                                     return callback(res);
                                                 });
@@ -159,9 +182,25 @@ function newSearch(field, value, callback) {
                                     } else {
                                         // not in this node
                                         con2.rollback((err) => {
-                                            if (err) throw err;
+                                            if (err) {
+                                                return con2.rollback(() => {
+                                                    con2.query("UNLOCK TABLES", () => {
+                                                        // closeConnection(con1)
+                                                        throw err;
+                                                    })
+                                                });
+                                            }
                                             con2.query("UNLOCK TABLES", (err) => {
-                                                if (err) throw err;
+                                                if (err) {
+                                                    if (err) {
+                                                        return con2.rollback(() => {
+                                                            con2.query("UNLOCK TABLES", () => {
+                                                                // closeConnection(con1)
+                                                                throw err;
+                                                            })
+                                                        });
+                                                    }
+                                                }
                                                 //closeconnection(con2);
                                             })
                                         });
@@ -173,32 +212,55 @@ function newSearch(field, value, callback) {
                 });
 
                 con3.query("SET autocommit = 0", function (err3) {
-                    if (err3) throw err;
+                    if (err3){
+                        return con3.rollback(() => {
+                            con3.query("UNLOCK TABLES", () => {
+                                // closeConnection(con1)
+                                throw err;
+                            })
+                        });
+                    }
                     else {
                         // transaction began
                         con3.query("LOCK TABLES final_movies_post1980 READ", (err) => {
-                            if (err) throw err;
+                            if (err) {
+                                return con3.rollback(() => {
+                                    con3.query("UNLOCK TABLES", () => {
+                                        // closeConnection(con1)
+                                        throw err;
+                                    })
+                                });
+                            }
                             else {
                                 // locking succesful
                                 con3.query(queryNode3, values, (err, res) => {
                                     if (err) {
-                                        con3.rollback((err) => {
-                                            if (err) throw err;
-                                            //closeconnection(con3);
+                                        return con3.rollback(() => {
+                                            con3.query("UNLOCK TABLES", () => {
+                                                // closeConnection(con1)
+                                                throw err;
+                                            })
                                         });
                                     } else if (res.length > 0) {
                                         // is in this node
                                         con3.commit((err) => {
                                             if (err) {
-                                                con3.rollback((err) => {
-                                                    if (err) throw err;
-                                                    //closeconnection(con3);
+                                                return con3.rollback(() => {
+                                                    con3.query("UNLOCK TABLES", () => {
+                                                        // closeConnection(con1)
+                                                        throw err;
+                                                    })
                                                 });
                                             } else {
                                                 con3.query("UNLOCK TABLES", (err) => {
-                                                    if (err) con3.rollback((err) => {
-                                                        if (err) throw err;
-                                                    });
+                                                    if (err) {
+                                                        return con3.rollback(() => {
+                                                            con3.query("UNLOCK TABLES", () => {
+                                                                // closeConnection(con1)
+                                                                throw err;
+                                                            })
+                                                        });
+                                                    }
                                                     //closeconnection(con3);
                                                     return callback(res);
                                                 });
@@ -223,30 +285,43 @@ function newSearch(field, value, callback) {
         } else {
             con1.query("LOCK TABLES final_movies_all READ", (err) => {
                 if (err) {
-                    con1.rollback((err) => {
-                        if (err) throw err;
-                        //closeconnection(con1);
+                    return con1.rollback(() => {
+                        con1.query("UNLOCK TABLES", () => {
+                            // closeConnection(con1)
+                            throw err;
+                        })
                     });
                 } else {
                     // locking successful
                     con1.query(queryNode1, values, (err, res) => {
                         if (err) {
-                            con1.rollback((err) => {
-                                if (err) throw err;
-                                //closeconnection(con1);
+                            return con1.rollback(() => {
+                                con1.query("UNLOCK TABLES", () => {
+                                    // closeConnection(con1)
+                                    throw err;
+                                })
                             });
                         } else {
                             // query successful
                             con1.commit((err) => {
                                 if (err) {
-                                    con1.rollback((err) => {
-                                        if (err) throw err;
-                                        //closeconnection(con1);
+                                    return con1.rollback(() => {
+                                        con1.query("UNLOCK TABLES", () => {
+                                            // closeConnection(con1)
+                                            throw err;
+                                        })
                                     });
                                 } else {
                                     // unlock successful
                                     con1.query("UNLOCK TABLES", (err) => {
-                                        if (err) throw err;
+                                        if (err) {
+                                            return con1.rollback(() => {
+                                                con1.query("UNLOCK TABLES", () => {
+                                                    // closeConnection(con1)
+                                                    throw err;
+                                                })
+                                            });
+                                        }
                                         // commit successful
                                         //closeconnection(con1);
                                         console.log(res);
@@ -274,11 +349,23 @@ function generateAllReports(genre, year, director, callback) {
             if(year < 1980){ // node 2
                 console.log("here");
                 con2.query("LOCK TABLES final_movies_pre1980 READ", function (err) {
-                    if (err) throw err;
+                    if (err) {
+                        return con2.rollback(() => {
+                            con2.query("UNLOCK TABLES", () => {
+                                // closeConnection(con1)
+                                throw err;
+                            })
+                        });
+                    }
     
                     con2.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_pre1980;", function (err, result) {
                         if (err) {
-                            throw err;
+                            return con2.rollback(() => {
+                                con2.query("UNLOCK TABLES", () => {
+                                    // closeConnection(con1)
+                                    throw err;
+                                })
+                            });
                         }
     
                         answers.push(result[0]['COUNT(DISTINCT name, year)']);
@@ -286,7 +373,12 @@ function generateAllReports(genre, year, director, callback) {
                         // Number of [GENRE] Movies in [YEAR]
                         con2.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_pre1980 WHERE genre=? AND year=?;", [genre, year], function (err, result) {
                             if (err) {
-                                throw err;
+                                return con2.rollback(() => {
+                                    con2.query("UNLOCK TABLES", () => {
+                                        // closeConnection(con1)
+                                        throw err;
+                                    })
+                                });
                             }
     
                             answers.push(result[0]['COUNT(DISTINCT name, year)']);
@@ -294,13 +386,32 @@ function generateAllReports(genre, year, director, callback) {
                             // Number of [GENRE] Movies in [YEAR] by [DIRECTOR]
                             con2.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_pre1980 WHERE genre=? AND year=? AND director=?;", [genre, year, director], function (err, result) {
                                 if (err) {
-                                    throw err;
+                                    return con2.rollback(() => {
+                                        con2.query("UNLOCK TABLES", () => {
+                                            // closeConnection(con1)
+                                            throw err;
+                                        })
+                                    });
                                 }
                                     con3.commit((err)=> {
-                                        if (err) throw err
+                                        if (err){
+                                            return con3.rollback(() => {
+                                                con3.query("UNLOCK TABLES", () => {
+                                                    // closeConnection(con1)
+                                                    throw err;
+                                                })
+                                            });
+                                        }
                                         //closeconnection(con3);
                                         con3.query("UNLOCK TABLES", (err)=> {
-                                            if (err) throw err
+                                            if (err) {
+                                                return con3.rollback(() => {
+                                                    con3.query("UNLOCK TABLES", () => {
+                                                        // closeConnection(con1)
+                                                        throw err;
+                                                    })
+                                                });
+                                            }
                                             answers.push(result[0]['COUNT(DISTINCT name, year)']);
                                             return callback(answers);
                                         })
@@ -312,11 +423,23 @@ function generateAllReports(genre, year, director, callback) {
                 });   
             }else{ //node 3
                 con3.query("LOCK TABLES final_movies_post1980 READ", function (err) {
-                    if (err) throw err;
+                    if (err) {
+                        return con3.rollback(() => {
+                            con3.query("UNLOCK TABLES", () => {
+                                // closeConnection(con1)
+                                throw err;
+                            })
+                        });
+                    }
     
                     con3.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_post1980;", function (err, result) {
                         if (err) {
-                            throw err;
+                            return con3.rollback(() => {
+                                con3.query("UNLOCK TABLES", () => {
+                                    // closeConnection(con1)
+                                    throw err;
+                                })
+                            });
                         }
     
                         answers.push(result[0]['COUNT(DISTINCT name, year)']);
@@ -324,7 +447,12 @@ function generateAllReports(genre, year, director, callback) {
                         // Number of [GENRE] Movies in [YEAR]
                         con3.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_post1980 WHERE genre=? AND year=?;", [genre, year], function (err, result) {
                             if (err) {
-                                throw err;
+                                return con3.rollback(() => {
+                                    con3.query("UNLOCK TABLES", () => {
+                                        // closeConnection(con1)
+                                        throw err;
+                                    })
+                                });
                             }
     
                             answers.push(result[0]['COUNT(DISTINCT name, year)']);
@@ -332,13 +460,32 @@ function generateAllReports(genre, year, director, callback) {
                             // Number of [GENRE] Movies in [YEAR] by [DIRECTOR]
                             con3.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_post1980 WHERE genre=? AND year=? AND director=?;", [genre, year, director], function (err, result) {
                                 if (err) {
-                                    throw err;
+                                    return con3.rollback(() => {
+                                        con3.query("UNLOCK TABLES", () => {
+                                            // closeConnection(con1)
+                                            throw err;
+                                        })
+                                    });
                                 }
                                     con3.commit((err)=> {
-                                        if (err) throw err
+                                        if (err) {
+                                            return con3.rollback(() => {
+                                                con3.query("UNLOCK TABLES", () => {
+                                                    // closeConnection(con1)
+                                                    throw err;
+                                                })
+                                            });
+                                        }
                                         //closeconnection(con3);
                                         con3.query("UNLOCK TABLES", (err)=> {
-                                            if (err) throw err
+                                            if (err) {
+                                                return con3.rollback(() => {
+                                                    con3.query("UNLOCK TABLES", () => {
+                                                        // closeConnection(con1)
+                                                        throw err;
+                                                    })
+                                                });
+                                            }
                                             answers.push(result[0]['COUNT(DISTINCT name, year)']);
                                             return callback(answers);
                                         })
@@ -351,11 +498,23 @@ function generateAllReports(genre, year, director, callback) {
             }
         }else{
             con1.query("LOCK TABLES final_movies_all READ", function (err) {
-                if (err) throw err;
+                if (err){
+                    return con1.rollback(() => {
+                        con1.query("UNLOCK TABLES", () => {
+                            // closeConnection(con1)
+                            throw err;
+                        })
+                    });
+                }
 
                 con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all;", function (err, result) {
                     if (err) {
-                        throw err;
+                        return con1.rollback(() => {
+                            con1.query("UNLOCK TABLES", () => {
+                                // closeConnection(con1)
+                                throw err;
+                            })
+                        });
                     }
 
                     answers.push(result[0]['COUNT(DISTINCT name, year)']);
@@ -363,7 +522,12 @@ function generateAllReports(genre, year, director, callback) {
                     // Number of [GENRE] Movies in [YEAR]
                     con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all WHERE genre=? AND year=?;", [genre, year], function (err, result) {
                         if (err) {
-                            throw err;
+                            return con1.rollback(() => {
+                                con1.query("UNLOCK TABLES", () => {
+                                    // closeConnection(con1)
+                                    throw err;
+                                })
+                            });
                         }
 
                         answers.push(result[0]['COUNT(DISTINCT name, year)']);
@@ -371,13 +535,32 @@ function generateAllReports(genre, year, director, callback) {
                         // Number of [GENRE] Movies in [YEAR] by [DIRECTOR]
                         con1.query("SELECT COUNT(DISTINCT name, year) FROM final_movies_all WHERE genre=? AND year=? AND director=?;", [genre, year, director], function (err, result) {
                             if (err) {
-                                throw err;
+                                return con1.rollback(() => {
+                                    con1.query("UNLOCK TABLES", () => {
+                                        // closeConnection(con1)
+                                        throw err;
+                                    })
+                                });
                             }
                                 con1.commit((err)=> {
-                                    if (err) throw err
+                                    if (err){
+                                        return con1.rollback(() => {
+                                            con1.query("UNLOCK TABLES", () => {
+                                                // closeConnection(con1)
+                                                throw err;
+                                            })
+                                        });
+                                    }
                                     //closeconnection(con1);
                                     con1.query("UNLOCK TABLES", (err)=> {
-                                        if (err) throw err
+                                        if (err) {
+                                            return con1.rollback(() => {
+                                                con1.query("UNLOCK TABLES", () => {
+                                                    // closeConnection(con1)
+                                                    throw err;
+                                                })
+                                            });
+                                        }
                                         answers.push(result[0]['COUNT(DISTINCT name, year)']);
                                         return callback(answers);
                                     })
@@ -391,7 +574,6 @@ function generateAllReports(genre, year, director, callback) {
     });
 }
 
-
 function reallyNewInsert(name, year, rank, genre, director, callback) {
     let hasCalledback = false;
 
@@ -399,28 +581,36 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
         con1.query("LOCK TABLES new_recovery_log WRITE, final_movies_all WRITE", function (err1) {
             if (err1) {
                 return con1.rollback(function () {
-                    throw err1;
+                    con1.query("UNLOCK TABLES", function(){
+                        throw err1;
+                    });
                 });
             }
 
             con1.query(insertLogNoId, ['INSERT', name, year, rank, genre, director, "N/A", 0, "N/A", "N/A"], function (err1) {
                 if (err1) {
                     return con1.rollback(function () {
-                        throw err1;
+                        con1.query("UNLOCK TABLES", function(){
+                            throw err1;
+                        });
                     });
                 }
 
                 con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err1) {
                     if (err1) {
                         return con1.rollback(function () {
-                            throw err1;
+                            con1.query("UNLOCK TABLES", function(){
+                                throw err1;
+                            });
                         });
                     }
 
                     con1.commit(function (err1) {
                         if (err1) {
                             return con1.rollback(function () {
-                                throw err1;
+                                con1.query("UNLOCK TABLES", function(){
+                                    throw err1;
+                                });
                             });
                         }
                         con1.query("UNLOCK TABLES", function (err1) {
@@ -445,34 +635,44 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
         con2.query("SET autocommit = 0", function (err2) {
             if (err2) {
                 return con2.rollback(function () {
-                    throw err2;
+                    con2.query("UNLOCK TABLES", function(){
+                        throw err2;
+                    });
                 });
             }
             con2.query("LOCK TABLES new_recovery_log WRITE, final_movies_pre1980 WRITE", function (err2) {
                 if (err2) {
                     return con2.rollback(function () {
-                        throw err2;
+                        con2.query("UNLOCK TABLES", function(){
+                            throw err2;
+                        });
                     });
                 }
 
                 con2.query(insertLogNoId, ['INSERT', name, year, rank, genre, director, "N/A", 0, "N/A", "N/A"], function (err2) {
                     if (err2) {
                         return con2.rollback(function () {
-                            throw err2;
+                            con2.query("UNLOCK TABLES", function(){
+                                throw err2;
+                            });
                         });
                     }
 
                     con2.query("INSERT INTO final_movies_pre1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err2) {
                         if (err2) {
                             return con2.rollback(function () {
-                                throw err2;
+                                con2.query("UNLOCK TABLES", function(){
+                                    throw err2;
+                                });
                             });
                         }
 
                         con2.commit(function (err2) {
                             if (err2) {
                                 return con2.rollback(function () {
-                                    throw err2;
+                                    con2.query("UNLOCK TABLES", function(){
+                                        throw err2;
+                                    });
                                 });
                             }
                             con2.query("UNLOCK TABLES", function (err2) {
@@ -499,37 +699,48 @@ function reallyNewInsert(name, year, rank, genre, director, callback) {
         con3.query("SET autocommit = 0", function (err3) {
             if (err3) {
                 return con3.rollback(function () {
-                    throw err3;
+                    con3.query("UNLOCK TABLES", function(){
+                        throw err3;
+                    })
                 });
             }
 
             con3.query("LOCK TABLE new_recovery_log WRITE, final_movies_post1980 WRITE", function (err3) {
                 if (err3) {
                     return con3.rollback(function () {
-                        throw err3;
+                        con3.query("UNLOCK TABLES", function(){
+                            throw err3;
+                        })
                     });
                 }
 
                 con3.query(insertLogNoId, ['INSERT', name, year, rank, genre, director, "N/A", 0, "N/A", "N/A"], function (err3) {
                     if (err3) {
                         return con3.rollback(function () {
-                            throw err3;
+                            con3.query("UNLOCK TABLES", function(){
+                                throw err3;
+                            })
                         });
                     }
 
                     con3.query("INSERT INTO final_movies_post1980 (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err3) {
                         if (err3) {
                             return con3.rollback(function () {
-                                throw err3;
+                                con3.query("UNLOCK TABLES", function(){
+                                    throw err3;
+                                })
                             });
                         }
 
                         con3.commit(function (err3) {
                             if (err3) {
                                 return con3.rollback(function () {
-                                    throw err3;
+                                    con3.query("UNLOCK TABLES", function(){
+                                        throw err3;
+                                    })
                                 });
                             }
+
                             con3.query("UNLOCK TABLES", function (err3) {
                                 if (err3) {
                                     return con3.rollback(function () {
@@ -555,37 +766,46 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
 
     con1.query("SET autocommit = 0", function (err1) {
         if (err1) {
-            return con1.rollback(function () {
-                throw err1;
-            });
-        }
+                return con1.rollback(function () {
+                    con1.query("UNLOCK TABLES", function(){
+                        throw err1;
+                    });
+                });
+            }
 
         con1.query("LOCK TABLES new_recovery_log WRITE, final_movies_all WRITE", function (err1) {
             if (err1) {
                 return con1.rollback(function () {
-                    throw err1;
+                    con1.query("UNLOCK TABLES", function(){
+                        throw err1;
+                    });
                 });
             }
 
             con1.query(insertLogNoId, ['UPDATE', name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err1) {
                 if (err1) {
                     return con1.rollback(function () {
-                        throw err1;
+                        con1.query("UNLOCK TABLES", function(){
+                            throw err1;
+                        });
                     });
                 }
-
                 console.log("inserted to node 1 log");
                 con1.query("UPDATE final_movies_all SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err1) {
                     if (err1) {
                         return con1.rollback(function () {
-                            throw err1;
+                            con1.query("UNLOCK TABLES", function(){
+                                throw err1;
+                            });
                         });
                     }
 
                     con1.commit(function (err1) {
                         if (err1) {
                             return con1.rollback(function () {
-                                throw err1;
+                                con1.query("UNLOCK TABLES", function(){
+                                    throw err1;
+                                });
                             });
                         }
                         con1.query("UNLOCK TABLES", function (err1) {
@@ -610,20 +830,26 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
         con2.query("SET autocommit = 0", function (err2) {
             if (err2) {
                 return con2.rollback(function () {
-                    throw err2;
+                    con2.query("UNLOCK TABLES", function(){
+                        throw err2;
+                    });
                 });
             }
             con2.query("LOCK TABLES new_recovery_log WRITE, final_movies_pre1980 WRITE", function (err2) {
                 if (err2) {
                     return con2.rollback(function () {
-                        throw err2;
+                        con2.query("UNLOCK TABLES", function(){
+                            throw err2;
+                        });
                     });
                 }
 
                 con2.query(insertLogNoId, ['UPDATE', name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err2) {
                     if (err2) {
                         return con2.rollback(function () {
-                            throw err2;
+                            con2.query("UNLOCK TABLES", function(){
+                                throw err2;
+                            });
                         });
                     }
 
@@ -631,14 +857,18 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                     con2.query("UPDATE final_movies_pre1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err2) {
                         if (err2) {
                             return con2.rollback(function () {
-                                throw err2;
+                                con2.query("UNLOCK TABLES", function(){
+                                    throw err2;
+                                });
                             });
                         }
 
                         con2.commit(function (err2) {
                             if (err2) {
                                 return con2.rollback(function () {
-                                    throw err2;
+                                    con2.query("UNLOCK TABLES", function(){
+                                        throw err2;
+                                    });
                                 });
                             }
                             con2.query("UNLOCK TABLES", function (err2) {
@@ -664,19 +894,25 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
         con3.query("SET autocommit = 0", function (err3) {
             if (err3) {
                 return con3.rollback(function () {
-                    throw err3;
+                    con3.query("UNLOCK TABLES", function(){
+                        throw err3;
+                    })
                 });
             }
             con3.query("LOCK TABLES new_recovery_log WRITE, final_movies_post1980 WRITE", function (err3) {
                 if (err3) {
                     return con3.rollback(function () {
-                        throw err3;
+                        con3.query("UNLOCK TABLES", function(){
+                            throw err3;
+                        })
                     });
                 }
                 con3.query(insertLogNoId, ['UPDATE', name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err3) {
                     if (err3) {
                         return con3.rollback(function () {
-                            throw err3;
+                            con3.query("UNLOCK TABLES", function(){
+                                throw err3;
+                            })
                         });
                     }
 
@@ -684,14 +920,18 @@ function reallyNewUpdate(name, year, rank, genre, director, old_name, old_year, 
                     con3.query("UPDATE final_movies_post1980 SET name=?, year=?, `rank`=?, genre=?, director=? WHERE name=? AND year=? AND genre=? AND director=?;", [name, year, rank, genre, director, old_name, old_year, old_genre, old_director], function (err3) {
                         if (err3) {
                             return con3.rollback(function () {
-                                throw err3;
+                                con3.query("UNLOCK TABLES", function(){
+                                    throw err3;
+                                })
                             });
                         }
 
                         con3.commit(function (err3) {
                             if (err3) {
                                 return con3.rollback(function () {
-                                    throw err3;
+                                    con3.query("UNLOCK TABLES", function(){
+                                        throw err3;
+                                    })
                                 });
                             }
                             con3.query("UNLOCK TABLES", function (err3) {
@@ -731,7 +971,6 @@ function InsertSimulateReplicaError(name, year, rank, genre, director, callback)
                         throw err1;
                     });
                 }
-
                 con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err1) {
                     if (err1) {
                         return con1.rollback(function () {
@@ -907,11 +1146,12 @@ function InsertSimulatePrimaryError(name, year, rank, genre, director, callback)
 
             con1.query(insertLogNoId, ['INSERT', name, year, rank, genre, director, "N/A", 0, "N/A", "N/A"], function (err1) {
                 if (err1) {
-                    return con1.rollback(function () {
-                        throw err1;
+                    con1.rollback(function () {
+                        con1.query("UNLOCK TABLES", function(){
+                            throw err1;
+                        });
                     });
                 }
-
                 con1.query("INSERT INTO final_movies_all (name, year, `rank`, genre, director) VALUES (?,?,?,?,?);", [name, year, rank, genre, director], function (err1) {
                     if (true) {
                         return con1.rollback(function () {

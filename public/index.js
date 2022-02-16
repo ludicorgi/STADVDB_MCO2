@@ -115,8 +115,8 @@ btn_demo.onclick = function() {
             alert("Loading . . . Might take a while . . .");
         },
         success: function (results) {
-            console.log("Z");
-            console.log(results);
+            // console.log("Z");
+            // console.log(results);
 
             if(results){
                 $('#txt_demo1').html(results[0]);
@@ -184,7 +184,7 @@ btn_search.onclick = function(){
         field : search_field.value,
         value : search_value.value,
     };
-    console.log(data);
+    // console.log(data);
     $.get('/search_movie', data, function(res){
         // show results
         // console.log(res[0]);
@@ -206,7 +206,7 @@ btn_search.onclick = function(){
 }
 
 window.onbeforeunload = function (){
-    console.log("a");
+    // console.log("a");
     $.get('/end_connections', function(res){
         alert("DB Killed");
     })
