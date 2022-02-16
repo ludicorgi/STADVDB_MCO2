@@ -324,7 +324,7 @@ function newSearch(field, value, callback) {
                                         }
                                         // commit successful
                                         //closeconnection(con1);
-                                        console.log(res);
+                                        // console.log(res);
                                         return callback(res);
                                     });
                                 };
