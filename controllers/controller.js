@@ -61,13 +61,15 @@ const controller = {
         })
     },
 
-    demoLogs: async function(req, res){
-        let log = await logs();
-        if(log){
-            res.status(200).send(log);
-        }else{
-            res.status(500).send("");
-        }
+    demoLogs: function(req, res){
+        logs((log)=> {
+            // console.log(log);
+            if(log){
+                res.status(200).send(log);
+            }else{
+                res.status(500).send("");
+            }
+        })
     }
 };
 
