@@ -112,14 +112,22 @@ btn_demo.onclick = function() {
         type: "GET",
         url: "/demo",
         beforeSend: function(){
-            alert("Loading . . .");
+            alert("Loading . . . Might take a while . . .");
         },
         success: function (results) {
+            console.log("Z");
+            console.log(results);
+
             if(results){
-                $('txt_demo').html(results);
+                $('#txt_demo1').html(results[0]);
+                $('#txt_demo2').html(results[1]);
+                $('#txt_demo3').html(results[2]);
             }else{
-                $('txt_demo').html("Failed to get demo logs");
+                $('#txt_demo1').html("Failed to get demo logs");
+                $('#txt_demo2').html("Failed to get demo logs");
+                $('#txt_demo3').html("Failed to get demo logs");
             }
+            document.getElementById('modal_demo').style.display='block';
         }
     });
 
