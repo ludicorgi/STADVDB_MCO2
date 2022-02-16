@@ -6,6 +6,7 @@ const insert = db.reallyNewInsert;
 const end = db.closeAllConnection;
 const reports = db.generateAllReports;
 const logs = demo.runAllTests;
+const recover = db.recoverAll;
 
 const controller = {
     getIndex: function(req, res) {
@@ -70,6 +71,11 @@ const controller = {
                 res.status(500).send("");
             }
         })
+    },
+
+    recoverNodes: function(req, res){
+        // console.log("here");
+        recover();
     }
 };
 

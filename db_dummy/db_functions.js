@@ -2074,6 +2074,9 @@ function recoverPrimaryNodeFromNode3(){
 }
 
 function recoverAll(){
+    con1 = connections.createConnectionNode3();
+    con2 = connections.createConnectionNode2();
+    con3 = connections.createConnectionNode1();
     con1.query("LOCK TABLE new_recovery_log READ", function(err1){
         con2.query("LOCK TABLE new_recovery_log READ", function(err2){
             con3.query("LOCK TABLE new_recovery_low READ", function(err3){
@@ -2083,6 +2086,7 @@ function recoverAll(){
                         if (err1) throw err1;
                     });
 
+                    if(results)
                     results.forEach(resultitem => {
                         var txnId = resultitem.transaction_id;
                         var type = resultitem.type;
@@ -2268,7 +2272,8 @@ function recoverAll(){
                     con2.query("UNLOCK TABLES", function (err2) {
                         if (err2) throw err2;
                     });
-        
+
+                    if(results)
                     results.forEach(resultitem => {
                         var txnId = resultitem.transaction_id;
                         var type = resultitem.type;
@@ -2359,7 +2364,8 @@ function recoverAll(){
                     con3.query("UNLOCK TABLES", function (err2) {
                         if (err2) throw err2;
                     });
-        
+
+                    if(results)
                     results.forEach(resultitem => {
                         var txnId = resultitem.transaction_id;
                         var type = resultitem.type;

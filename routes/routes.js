@@ -23,5 +23,8 @@ app.get('/generate_reports', controller.generateReports);
 // Demo Logs
 app.get('/demo', controller.demoLogs);
 
+// Recovery
+app.get('/recover', controller.recoverNodes);
+
 
 module.exports = app;

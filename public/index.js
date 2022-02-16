@@ -205,9 +205,16 @@ btn_search.onclick = function(){
     });
 }
 
+// kill connections
 window.onbeforeunload = function (){
     // console.log("a");
     $.get('/end_connections', function(res){
         alert("DB Killed");
     })
 }
+
+// recovery
+$(document).ready(()  => {
+    // console.log("here");
+    $.get('/recover')
+})
