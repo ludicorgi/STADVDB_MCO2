@@ -26,7 +26,7 @@ app.get('/demo2', controller.demoLogs2);
 app.get('/demo3', controller.demoLogs3);
 
 // Recovery
-// app.get('/recover', controller.recoverNodes);
+app.get('/recover', controller.recoverNodes);
 
 
 module.exports = app;
