@@ -99,7 +99,7 @@ const controller = {
 
     recoverNodes: function(req, res){
         // console.log("here");
-        recover();
+        // recover();
     }
 };
 
