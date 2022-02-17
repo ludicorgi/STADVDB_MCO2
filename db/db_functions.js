@@ -2644,19 +2644,19 @@ function recoverAll(){
                                                     }
                                                 }
                                                 else{
-                                                    con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err1){
-                                                        if (err1) {
-                                                            return con1.rollback(function () {
-                                                                con1.query("UNLOCK TABLES", function(){
-                                                                    throw err1;
+                                                    con2.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err1){
+                                                        if (err2) {
+                                                            return con2.rollback(function () {
+                                                                con2.query("UNLOCK TABLES", function(){
+                                                                    throw err2;
                                                                 });
                                                             });
                                                         }
-                                                        con1.commit(function (err1) {
-                                                            if (err1) {
-                                                                return con1.rollback(function () {
-                                                                    con1.query("UNLOCK TABLES", function(){
-                                                                        throw err1;
+                                                        con2.commit(function (err2) {
+                                                            if (err2) {
+                                                                return con2.rollback(function () {
+                                                                    con2.query("UNLOCK TABLES", function(){
+                                                                        throw err2;
                                                                     });
                                                                 });
                                                             }
@@ -2669,15 +2669,15 @@ function recoverAll(){
                                                         })
                                                     });
                     
-                                                    con2.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
-                                                        if (err2) {
-                                                            return con2.rollback(function () {
-                                                                con2.query("UNLOCK TABLES", function(){
-                                                                    throw err2;
+                                                    con1.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err2){
+                                                        if (err1) {
+                                                            return con1.rollback(function () {
+                                                                con1.query("UNLOCK TABLES", function(){
+                                                                    throw err1;
                                                                 });
                                                             });
                                                         }
-                                                        con2.commit(function (err1) {
+                                                        con1.commit(function (err1) {
                                                             if (err1) {
                                                                 return con1.rollback(function () {
                                                                     con1.query("UNLOCK TABLES", function(){
@@ -2845,19 +2845,19 @@ function recoverAll(){
                                                     }
                                                 }
                                                 else{
-                                                    con1.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err1){
-                                                        if (err1) {
-                                                            return con1.rollback(function () {
-                                                                con1.query("UNLOCK TABLES", function(){
-                                                                    throw err1;
+                                                    con3.query("DELETE FROM new_recovery_log WHERE transaction_id=?;", [txnId], function(err1){
+                                                        if (err3) {
+                                                            return con3.rollback(function () {
+                                                                con3.query("UNLOCK TABLES", function(){
+                                                                    throw err3;
                                                                 });
                                                             });
                                                         }
-                                                        con1.commit(function (err1) {
-                                                            if (err1) {
-                                                                return con1.rollback(function () {
-                                                                    con1.query("UNLOCK TABLES", function(){
-                                                                        throw err1;
+                                                        con3.commit(function (err3) {
+                                                            if (err3) {
+                                                                return con3.rollback(function () {
+                                                                    con3.query("UNLOCK TABLES", function(){
+                                                                        throw err3;
                                                                     });
                                                                 });
                                                             }
@@ -2870,18 +2870,18 @@ function recoverAll(){
                                                         })
                                                     });
                     
-                                                    con3.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err3){
-                                                        if (err3) {
-                                                            return con3.rollback(function () {
-                                                                con3.query("UNLOCK TABLES", function(){
+                                                    con1.query("DELETE FROM new_recovery_log WHERE type=? AND name=? AND year=? AND `rank`=? AND genre=? AND director=?;", [type, name, year, rank, genre, director], function(err3){
+                                                        if (err1) {
+                                                            return con1.rollback(function () {
+                                                                con1.query("UNLOCK TABLES", function(){
                                                                     throw err3;
                                                                 })
                                                             });
                                                         }
-                                                        con3.commit(function (err3) {
-                                                            if (err3) {
-                                                                return con3.rollback(function () {
-                                                                    con3.query("UNLOCK TABLES", function(){
+                                                        con1.commit(function (err1) {
+                                                            if (err1) {
+                                                                return con1.rollback(function () {
+                                                                    con1.query("UNLOCK TABLES", function(){
                                                                         throw err1;
                                                                     });
                                                                 });
